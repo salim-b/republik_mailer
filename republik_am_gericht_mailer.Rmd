@@ -1,0 +1,77 @@
+---
+title: "«Republik am Gericht» Mailer"
+author: "Salim B"
+date: "`r Sys.Date()`"
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Requirements
+
+First of all: This script doesn't allow any unauthenticated access to the online newspaper [Republik](https://www.republik.ch/)! You have to be a (paying) subscriber. This allows you to [log in to the site](https://www.republik.ch/anmelden) which results in the creation of a session cookie needed for authentication. This cookie is named `connect.sid`  and you need to provide its content[^view-cookie] (a cryptographic hash) as the `auth_cookie` argument to the function `get_latest_articles()`.
+
+
+[^view-cookie]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector).
+
+
+# Get latest _Am Gericht_ articles
+
+The code below fetches the link, title and lead of the latest articles from the format [Am Gericht](https://www.republik.ch/format/am-gericht).
+
+```{r, get-latest-articles}
+get_latest_articles <- function(format = "am-gericht",
+                                auth_cookie)
+{
+  # COMMENTED OUT because auth doesn't work with httr::GET (why not?)
+  # response <- httr::GET(url = glue::glue("https://www.republik.ch/format/{format}"),
+  #                       httr::set_cookies(`connect.sid` = auth_cookie))
+  
+  article_divs <-
+    system2(command = "curl",
+            args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
+            stdout = TRUE,
+            stderr = TRUE) %>%
+    stringr::str_subset(pattern = "<body") %>%
+    xml2::read_html() %>%
+    # extract all <div> nodes that directly contain a <h1> node
+    rvest::html_nodes(xpath = "//div[h1]")
+  
+  # ensure we actually got something
+  if ( length(article_divs) == 0 )
+  {
+    stop("No articles could be scraped! Maybe your `auth_cookie` is invalid?",
+         call. = FALSE)
+  }
+  
+  # extract article links and titles
+  articles <-
+    tibble::tibble(href =
+                     article_divs %>%
+                     rvest::html_node(css = "h1") %>%
+                     rvest::html_node(css = "a") %>%
+                     rvest::html_attr(name = "href"),
+                   title =
+                     article_divs %>%
+                     rvest::html_node(css = "h1") %>%
+                     rvest::html_text())
+  
+  # add article leads
+  articles %<>%
+    dplyr::mutate(lead =
+                    glue::glue("//a[@href='{articles$href}']") %>%
+                    purrr::map(~ rvest::html_nodes(x = article_divs,
+                                                   xpath = .x)) %>%
+                    purrr::map(~ .x[2]) %>%
+                    purrr::map(.f = rvest::html_text) %>%
+                    purrr::flatten_chr())
+  
+  # make links absolute
+  articles$href %<>% paste0("https://www.republik.ch", .)
+  
+  return(articles)
+}
+```
