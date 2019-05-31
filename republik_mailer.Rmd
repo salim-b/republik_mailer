@@ -184,7 +184,7 @@ saveRDS(object = article_metadata,
                                       creds_file_name = ".mail_credentials")
     ```
 
-## Read in e-mail `from` address
+## Read in e-mail `from` and `to` address/name
 
 ```{r, read-in-sender-details}
 from <- ifelse(file.exists(".from"),
@@ -192,6 +192,18 @@ from <- ifelse(file.exists(".from"),
                                  skip_empty_rows = TRUE,
                                  n_max = 1),
                "your.mail@address.suffix")
+
+to <- ifelse(file.exists(".to"),
+             readr::read_lines(file = ".to",
+                               skip_empty_rows = TRUE,
+                               n_max = 1),
+             "your.mail@address.suffix")
+
+to_name <- ifelse(file.exists(".to_name"),
+                  readr::read_lines(file = ".to_name",
+                                    skip_empty_rows = TRUE,
+                                    n_max = 1),
+                  "Ladies and gentleman")
 ```
 
 ## Am Gericht
@@ -212,7 +224,7 @@ if ( article_metadata %>%
   
   blastula::compose_email(
     body = paste0(
-      "Liebes C2D-Team,\n\nDie Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):\n\n",
+      "{to_name},\n\nDie Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):\n\n",
       paste(new_articles, collapse = "\n\n"),
       "\n\n![Symbolbild]",
       "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)",
@@ -222,7 +234,7 @@ if ( article_metadata %>%
       "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
     insert_css_into_blastula() %>%
     blastula::smtp_send(from = from,
-                        to = "c2d@zdaarau.ch",
+                        to = to,
                         subject = "\U2696\UFE0F Republik am Gericht \U2696\UFE0F",
                         creds_file = ".mail_credentials")
 }
@@ -304,7 +316,7 @@ if ( (article_metadata %>%
       "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
     insert_css_into_blastula() %>%
     blastula::send_email_out(from = from,
-                             to = "c2d@zdaarau.ch",
+                             to = to,
                              subject = "\U1F1E8\U1F1ED Republik-Briefing aus Bern \U1F1E8\U1F1ED")
 }
 ```
