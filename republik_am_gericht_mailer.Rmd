@@ -100,3 +100,31 @@ get_latest_article_metadata <- function(format = "am-gericht",
   return(articles)
 }
 ```
+
+# Update local article metadata
+
+```{r, store-article-metadata-locally}
+# read in existing local metadata
+if ( file.exists("article_metadata.rds") )
+{
+  article_metadata <- readRDS(file = "article_metadata.rds")
+  
+} else
+{
+  article_metadata <- tibble::tibble(format = character(0),
+                                     href = character(0),
+                                     title = character(0),
+                                     lead = character(0))
+}
+
+# update metadata
+article_metadata %<>%
+  dplyr::full_join(y = get_latest_article_metadata(format = "am-gericht"),
+                   by = colnames(.)) %>%
+  dplyr::full_join(y = get_latest_article_metadata(format = "briefing-aus-bern"),
+                   by = colnames(.))
+
+saveRDS(object = article_metadata,
+        file = "article_metadata.rds")
+```
+
