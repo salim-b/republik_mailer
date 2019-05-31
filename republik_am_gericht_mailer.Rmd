@@ -1,6 +1,6 @@
 ---
 title: "«Republik am Gericht» Mailer"
-author: "Salim B"
+author: "Salim Brüggemann"
 date: "`r Sys.Date()`"
 editor_options:
   chunk_output_type: console
