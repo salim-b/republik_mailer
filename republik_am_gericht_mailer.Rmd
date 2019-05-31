@@ -72,7 +72,9 @@ get_latest_article_metadata <- function(format = "am-gericht",
   
   # extract article links and titles
   articles <-
-    tibble::tibble(href =
+    tibble::tibble(format =
+                     format,
+                   href =
                      article_divs %>%
                      rvest::html_node(css = "h1") %>%
                      rvest::html_node(css = "a") %>%
