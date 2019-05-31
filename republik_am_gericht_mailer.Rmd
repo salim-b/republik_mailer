@@ -107,7 +107,7 @@ get_latest_article_metadata <- function(format = "am-gericht",
 
 ```{r, insert-css-into-blastula}
 insert_css_into_blastula <- function(blastula_email,
-                                     css = ".powered-by a {color: #999999;\n}")
+                                     css = "div.footer a {\n      color: #999999;\n    }")
 {
   blastula_email$html_str %<>% stringr::str_replace(pattern = "(\\n +)(</style>)",
                                                     replacement = glue::glue("\\1{css}\\1\\2"))
