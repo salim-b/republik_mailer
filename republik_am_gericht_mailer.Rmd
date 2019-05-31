@@ -18,7 +18,9 @@ First of all: This script doesn't allow any unauthenticated access to the online
 [^view-cookie]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector). The cookie's content can also be stored in a text file named `.auth_cookie` in the same folder as this script.
 
 
-# Get latest articles from specific Republik format
+# Define functions
+
+## Get latest articles from specific Republik format
 
 The code below fetches the link, title and lead of the latest articles from a specific article `format`, like [Am Gericht](https://www.republik.ch/format/am-gericht) for example.
 
@@ -98,6 +100,23 @@ get_latest_article_metadata <- function(format = "am-gericht",
   articles$href %<>% paste0("https://www.republik.ch", .)
   
   return(articles)
+}
+```
+
+## Insert CSS into blastula e-mail
+
+```{r, insert-css-into-blastula}
+insert_css_into_blastula <- function(blastula_email,
+                                     css = ".powered-by a {color: #999999;\n}")
+{
+  blastula_email$html_str %<>% stringr::str_replace(pattern = "(\\n +)(</style>)",
+                                                    replacement = glue::glue("\\1{css}\\1\\2"))
+  
+  attrs <- attributes(blastula_email$html_html)
+  blastula_email$html_html <- blastula_email$html_str
+  attributes(blastula_email$html_html) <- attrs
+  
+  return(blastula_email)
 }
 ```
 
