@@ -143,21 +143,59 @@ article_metadata %<>%
                    by = colnames(.) %>% setdiff("is_mailed")) %>%
   dplyr::full_join(y = get_latest_article_metadata(format = "briefing-aus-bern"),
                    by = colnames(.) %>% setdiff("is_mailed")) %>%
-  tidyr::replace_na(replace = list(is_mailed = FALSE))
+  tidyr::replace_na(replace = list(is_mailed = FALSE)) %>%
+  # remove possible duplicates (keep latest metadata)
+  dplyr::arrange(-dplyr::row_number()) %>%
+  dplyr::filter(!duplicated(href))
 
 saveRDS(object = article_metadata,
         file = "article_metadata.rds")
 ```
 
-# Send E-Mail with new articles
+# Send e-mail with new articles
 
-```{r, mail-articles}
-# Am Gericht
+**Remarks:**
+
+- Currently the package [blastula](https://rich-iannone.github.io/blastula/) used to send e-mails is undergoing heavy changes, i.a. the underlying program used for SMTP [is being replaced](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#sending-email) by [mailsend-go](https://github.com/muquit/mailsend-go). Therefore you should use the development version installed directly from GitHub using:
+
+    ```r
+    remotes::install_github("rich-iannone/blastula")
+    ```
+
+- Beforehand you should [install mailsend-go](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#installation-of-mailsend-go). On Ubuntu Linux, you also have to install the Debian package `libsodium-dev` which is required by the R package `sodium` which in turn is a dependency of the R package `keyring` which is finally a dependency of the `blastula` R package.
+
+- It's recommended to create a file `.mail_credentials` containing the necessary authentication and connection information. You can create it using `blastula::create_email_creds_file()` like the following:
+
+    ```r
+    blastula::create_email_creds_file(user = "******@address.suffix",
+                                      password = "******",
+                                      host = "smtp.address.suffix",
+                                      port = 587L,
+                                      sender = "Your Name (\U1F916)",
+                                      use_ssl = FALSE,
+                                      use_tls = TRUE,
+                                      authenticate = TRUE,
+                                      creds_file_name = ".mail_credentials")
+    ```
+
+## Read in e-mail `from` address
+
+```{r, read-in-sender-details}
+from <- ifelse(file.exists(".from"),
+               readr::read_lines(file = ".from",
+                                 skip_empty_rows = TRUE,
+                                 n_max = 1),
+               "your.mail@address.suffix")
+```
+
+## Am Gericht
+
+```{r, mail-articles-am-gericht}
 if ( article_metadata %>%
      dplyr::filter(format == "am-gericht") %$%
      is_mailed %>%
-     isFALSE() %>%
-     any() )
+     all() %>%
+     not() )
 {
   new_articles <-
     article_metadata %>%
@@ -166,23 +204,32 @@ if ( article_metadata %>%
     dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %$%
     md
   
-  new_mail <- blastula::compose_email(
+  blastula::compose_email(
     body = paste0(
       "Liebes C2D-Team,\n\nDie Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):\n\n",
       paste(new_articles, collapse = "\n\n"),
       "\n\n![Symbolbild]",
-      "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)"),
+      "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)",
+      "\n\nEinen schönen Tag wünscht  \nSalims MailBot \U1F916"),
     footer = paste0(
       "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
-      "[hier](https://gitlab.com/salim-b/republik_mailer)."))
+      "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
+    insert_css_into_blastula() %>%
+    blastula::smtp_send(from = from,
+                        to = "c2d@zdaarau.ch",
+                        subject = "\U2696\UFE0F Republik am Gericht \U2696\UFE0F",
+                        creds_file = ".mail_credentials")
 }
+```
 
-# Briefing aus Bern (only on Thursdays)
+## Briefing aus Bern (only on Thursdays)
+
+```{r, mail-articles-briefing-aus-bern}
 if ( (article_metadata %>%
       dplyr::filter(format == "briefing-aus-bern") %$%
       is_mailed %>%
-      isFALSE() %>%
-      any()) &
+      all() %>%
+      not()) &
      (Sys.Date() %>%
       lubridate::wday() %>%
       magrittr::equals(5)) )
@@ -194,27 +241,64 @@ if ( (article_metadata %>%
     dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %$%
     md
   
+  if ( length(new_articles) > 1 )
+  {
+    stop("More than one new 'Briefing aus Bern' article found!")
+  }
+  
   images <- tibble::tibble(
-    url = c(""),
+    url = c("https://gitlab.com/salim-b/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-516.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundesplatz-516.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus-516.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus2-516.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/water-fountain-516.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/museumsnacht-bundeplatz-stereographic-516.jpg.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bern-bundesplatz-516.jpg"),
     credits = c(
       paste0(
-        "_Storm brewing over the Parliament_ von Christian Scheidegger ist lizenziert unter ",
+        "_[Storm brewing over the Parliament](https://www.flickr.com/photos/chreegou/42317245170/)_ von Christian Scheidegger ist lizenziert unter ",
+        "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
+      paste0(
+        "_[Bundesplatz](https://www.flickr.com/photos/schoeband/6514744179/)_ von Andreina Schoeberlein ist lizenziert unter ",
+        "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
+      paste0(
+        "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4450441204/)_ von Martin Abegglen ist lizenziert unter ",
+        "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
+      paste0(
+        "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4875386468/)_ von Martin Abegglen ist lizenziert unter ",
+        "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
+      paste0(
+        "_[Water Fountain](https://www.flickr.com/photos/glodjib/7371568978/)_ von Guido Gloor Modjib ist lizenziert unter ",
+        "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
+      paste0(
+        "_[Museumsnacht Bundeplatz Stereographic](https://www.flickr.com/photos/habi/5546211688/)_ von David Haberthür ist lizenziert unter ",
         "[CC-BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/)"),
       paste0(
-        "_Bundesplatz_ von Andreina Schoeberlein ist lizenziert unter ",
-        "[CC-BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/)"))
+        "_[Bern Bundesplatz](https://www.flickr.com/photos/codeseven/3798802986/)_ von Philipp ist lizenziert unter ",
+        "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"))
   )
   
-  new_mail <- blastula::compose_email(
+  random_image_choice <-
+    runif(n = 1,
+          min = 1,
+          max = nrow(images)) %>%
+    round(digits = 0)
+  
+  blastula::compose_email(
     body = paste0(
-      "Liebes C2D-Team,\n\nDas heutige [Briefing aus Bern](https://www.republik.ch/format/briefing-aus-bern) fasst ",
-      "_«das Wichtigste in Kürze aus Parlament, Regierung und Verwaltung, kurz: dem Bundeshaus» der letzten 7 Tage zusammen:\n\n",
+      "Liebes C2D-Team,\n\nDas heutige [Briefing aus Bern](https://www.republik.ch/format/briefing-aus-bern) der Republik fasst ",
+      "_«das Wichtigste in Kürze aus Parlament, Regierung und Verwaltung, kurz: dem Bundeshaus»_ der letzten 7 Tage zusammen:\n\n",
       paste(new_articles, collapse = "\n\n"),
       "\n\n![Symbolbild]",
-      "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)"),
+      "({images$url[random_image_choice]})",
+      "\n\nEinen schönen Tag wünscht  \nSalims MailBot \U1F916"),
     footer = paste0(
-      images$credits[2], "\n\n",
+      "{images$credits[random_image_choice]}\n\n",
       "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
-      "[hier](https://gitlab.com/salim-b/republik_mailer)."))
+      "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
+    insert_css_into_blastula() %>%
+    blastula::send_email_out(from = from,
+                             to = "c2d@zdaarau.ch",
+                             subject = "\U1F1E8\U1F1ED Republik-Briefing aus Bern \U1F1E8\U1F1ED")
 }
 ```
