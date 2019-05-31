@@ -11,8 +11,21 @@ In addition, the `from` sender address for the e-mails being sent should be prov
 
 [^reveal]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector). Instead of having to provide the `auth_cookie` parameter, the cookie's content can also be stored in a text file named `.auth_cookie` in the same folder as this script.
 
-## Example
+## E-Mail Example
 
 An E-Mail for a new post in the Republik format [Am Gericht](https://www.republik.ch/format/am-gericht) could look like this:
 
 ![](am-gericht.png)
+
+## Run the script
+
+It's recommended that you adapt the script before you run it. To run it from a shell:
+
+```sh
+Rscript --vanilla \
+            -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
+                                          output = tempfile(), \
+                                          quiet = TRUE), \
+                       encoding = 'UTF-8', \
+                       echo = FALSE)"
+```
