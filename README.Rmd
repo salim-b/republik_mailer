@@ -13,7 +13,7 @@ In addition, the `from` sender address for the e-mails being sent should be prov
 
 ## Run the script
 
-It's recommended that you adapt the script before you run it. To run it from a shell:
+It's recommended that you adapt the script before you run it. Then to run it from a shell:
 
 ```sh
 Rscript --vanilla \
