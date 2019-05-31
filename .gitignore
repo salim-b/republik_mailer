@@ -11,9 +11,11 @@ Thumbs.db
 .Rproj.user
 .Ruserdata
 
-# API keys
+# API keys and credentials
 .httr-oauth
 .auth_cookie
+.from
+.mail_credentials
 
 # article metadata
 article_metadata.rds
