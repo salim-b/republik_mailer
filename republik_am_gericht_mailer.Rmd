@@ -20,7 +20,7 @@ First of all: This script doesn't allow any unauthenticated access to the online
 
 # Get latest articles from specific Republik format
 
-The code below fetches the link, title and lead of the latest articles from the format [Am Gericht](https://www.republik.ch/format/am-gericht).
+The code below fetches the link, title and lead of the latest articles from a specific article `format`, like [Am Gericht](https://www.republik.ch/format/am-gericht) for example.
 
 ```{r, get-latest-article-metadata}
 get_latest_article_metadata <- function(format = "am-gericht",
@@ -114,17 +114,88 @@ if ( file.exists("article_metadata.rds") )
   article_metadata <- tibble::tibble(format = character(0),
                                      href = character(0),
                                      title = character(0),
-                                     lead = character(0))
+                                     lead = character(0),
+                                     is_mailed = logical(0))
 }
 
 # update metadata
 article_metadata %<>%
   dplyr::full_join(y = get_latest_article_metadata(format = "am-gericht"),
-                   by = colnames(.)) %>%
+                   by = colnames(.) %>% setdiff("is_mailed")) %>%
   dplyr::full_join(y = get_latest_article_metadata(format = "briefing-aus-bern"),
-                   by = colnames(.))
+                   by = colnames(.) %>% setdiff("is_mailed")) %>%
+  tidyr::replace_na(replace = list(is_mailed = FALSE))
 
 saveRDS(object = article_metadata,
         file = "article_metadata.rds")
 ```
 
+# Send E-Mail with new articles
+
+```{r, mail-articles}
+# Am Gericht
+if ( article_metadata %>%
+     dplyr::filter(format == "am-gericht") %$%
+     is_mailed %>%
+     isFALSE() %>%
+     any() )
+{
+  new_articles <-
+    article_metadata %>%
+    dplyr::filter(format == "am-gericht"
+                  & !is_mailed) %>%
+    dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %$%
+    md
+  
+  new_mail <- blastula::compose_email(
+    body = paste0(
+      "Liebes C2D-Team,\n\nDie Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):\n\n",
+      paste(new_articles, collapse = "\n\n"),
+      "\n\n![Symbolbild]",
+      "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)"),
+    footer = paste0(
+      "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
+      "[hier](https://gitlab.com/salim-b/republik_mailer)."))
+}
+
+# Briefing aus Bern (only on Thursdays)
+if ( (article_metadata %>%
+      dplyr::filter(format == "briefing-aus-bern") %$%
+      is_mailed %>%
+      isFALSE() %>%
+      any()) &
+     (Sys.Date() %>%
+      lubridate::wday() %>%
+      magrittr::equals(5)) )
+{
+  new_articles <-
+    article_metadata %>%
+    dplyr::filter(format == "briefing-aus-bern"
+                  & !is_mailed) %>%
+    dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %$%
+    md
+  
+  images <- tibble::tibble(
+    url = c(""),
+    credits = c(
+      paste0(
+        "_Storm brewing over the Parliament_ von Christian Scheidegger ist lizenziert unter ",
+        "[CC-BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/)"),
+      paste0(
+        "_Bundesplatz_ von Andreina Schoeberlein ist lizenziert unter ",
+        "[CC-BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/)"))
+  )
+  
+  new_mail <- blastula::compose_email(
+    body = paste0(
+      "Liebes C2D-Team,\n\nDas heutige [Briefing aus Bern](https://www.republik.ch/format/briefing-aus-bern) fasst ",
+      "_«das Wichtigste in Kürze aus Parlament, Regierung und Verwaltung, kurz: dem Bundeshaus» der letzten 7 Tage zusammen:\n\n",
+      paste(new_articles, collapse = "\n\n"),
+      "\n\n![Symbolbild]",
+      "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)"),
+    footer = paste0(
+      images$credits[2], "\n\n",
+      "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
+      "[hier](https://gitlab.com/salim-b/republik_mailer)."))
+}
+```
