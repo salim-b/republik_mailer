@@ -15,20 +15,43 @@ knitr::opts_chunk$set(echo = TRUE)
 First of all: This script doesn't allow any unauthenticated access to the online newspaper [Republik](https://www.republik.ch/)! You have to be a (paying) subscriber. This allows you to [log in to the site](https://www.republik.ch/anmelden) which results in the creation of a session cookie needed for authentication. This cookie is named `connect.sid`  and you need to provide its content[^view-cookie] (a cryptographic hash) as the `auth_cookie` argument to the function `get_latest_articles()`.
 
 
-[^view-cookie]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector).
+[^view-cookie]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector). The cookie's content can also be stored in a text file named `.auth_cookie` in the same folder as this script.
 
 
-# Get latest _Am Gericht_ articles
+# Get latest articles from specific Republik format
 
 The code below fetches the link, title and lead of the latest articles from the format [Am Gericht](https://www.republik.ch/format/am-gericht).
 
-```{r, get-latest-articles}
-get_latest_articles <- function(format = "am-gericht",
-                                auth_cookie)
+```{r, get-latest-article-metadata}
+get_latest_article_metadata <- function(format = "am-gericht",
+                                        auth_cookie = NULL)
 {
+  # read in auth cookie from file
+  if ( is.null(auth_cookie) )
+  {
+    if ( file.exists(".auth_cookie") )
+    {
+      auth_cookie <- readr::read_lines(file = ".auth_cookie",
+                                       skip_empty_rows = TRUE,
+                                       n_max = 1)
+    } else
+    {
+      stop("No `auth_cookie` argument provided and no `.auth_cookie` file found either!")
+    }
+  }
+  
   # COMMENTED OUT because auth doesn't work with httr::GET (why not?)
   # response <- httr::GET(url = glue::glue("https://www.republik.ch/format/{format}"),
   #                       httr::set_cookies(`connect.sid` = auth_cookie))
+  #
+  # alternative method to set cookies for httr (doesn't work either!)
+  # httr::config(cookie = glue::glue("connect.sid={auth_cookie}"))
+  #
+  # test if authentication was successful
+  # response %>%
+  #   httr::content(as = "text") %>%
+  #   stringr::str_detect(pattern = "Sie brauchen eine Mitgliedschaft, um die Beiträge zu lesen.",
+  #                       negate = TRUE)
   
   article_divs <-
     system2(command = "curl",
