@@ -1,5 +1,5 @@
 ---
-title: "«Republik am Gericht» Mailer"
+title: "Republik Mailer"
 author: "Salim Brüggemann"
 date: "`r Sys.Date()`"
 editor_options:
@@ -10,19 +10,11 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Requirements
-
-First of all: This script doesn't allow any unauthenticated access to the online newspaper [Republik](https://www.republik.ch/)! You have to be a (paying) subscriber. This allows you to [log in to the site](https://www.republik.ch/anmelden) which results in the creation of a session cookie needed for authentication. This cookie is named `connect.sid`  and you need to provide its content[^view-cookie] (a cryptographic hash) as the `auth_cookie` argument to the function `get_latest_articles()`.
-
-
-[^view-cookie]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector). The cookie's content can also be stored in a text file named `.auth_cookie` in the same folder as this script.
-
-
 # Define functions
 
 ## Get latest articles from specific Republik format
 
-The code below fetches the link, title and lead of the latest articles from a specific article `format`, like [Am Gericht](https://www.republik.ch/format/am-gericht) for example.
+The code below fetches the link, title and lead of the latest articles from a specific article `format`, like [Am Gericht](https://www.republik.ch/format/am-gericht) for example. You have to provide the value of the `conncet.side` cookie, either as argument `auth_cookie` or in a file `.auth_cookie` in the working directory.
 
 ```{r, get-latest-article-metadata}
 get_latest_article_metadata <- function(format = "am-gericht",
@@ -55,6 +47,7 @@ get_latest_article_metadata <- function(format = "am-gericht",
   #   stringr::str_detect(pattern = "Sie brauchen eine Mitgliedschaft, um die Beiträge zu lesen.",
   #                       negate = TRUE)
   
+  # get HTML and extract relevant parts
   article_divs <-
     system2(command = "curl",
             args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
@@ -120,9 +113,22 @@ insert_css_into_blastula <- function(blastula_email,
 }
 ```
 
+## Knit `README.Rmd` to `README.md`
+
+```{r, knit-readme}
+knit_readme <- function()
+{
+  knitr::knit2pandoc(input = "README.Rmd",
+                     output = "README.md",
+                     tangle = FALSE,
+                     encoding = "UTF-8",
+                     to = "gfm")
+}
+```
+
 # Update local article metadata
 
-```{r, store-article-metadata-locally}
+```{r, update-local-article-metadata}
 # read in existing local metadata
 if ( file.exists("article_metadata.rds") )
 {
