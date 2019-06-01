@@ -4,7 +4,7 @@ Send E-Mails spreading recent articles from a certain format of the online newsp
 
 ## Requirements
 
-First of all: This script doesn't allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and you need to provide its value (a cryptographic hash) as the `auth_cookie` argument[^reveal] to the function `get_latest_articles()`. Instead of having to provide an `auth_cookie` argument, the cookie's content can also be stored in a text file named `.auth_cookie` in the same folder as this script.
+First of all: This script doesn't allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and you need to provide its value (a cryptographic hash) as the `auth_cookie` argument[^reveal] to the function `get_latest_articles()`. Instead of having to provide an `auth_cookie` argument, the cookie's value can also be stored in a text file named `.auth_cookie` in the same folder as this script.
 
 In addition, the `from` sender address as well as the `to` receiver address and name for the e-mails being sent should be provided in the files `.from`, `.to` and `.to_name` respectively, each located in the working directory.
 
