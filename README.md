@@ -13,7 +13,42 @@ In addition, the `from` sender address as well as the `to` receiver address and 
 
 ## Run the script
 
-It's recommended that you adapt the script before you run it. Then to run it from a shell:
+It's recommended that you adapt the script to your needs before you run it. For example, change the `format` to any of the existing Republik formats including:
+
+- `7-uhr-newsletter`
+- `am-gericht`
+- `am-wegesrand`
+- `an-die-verlagsetage`
+- `alles-was-recht-ist`
+- `auf-lange-sicht`
+- `aus-der-arena`
+- `aus-der-redaktion`
+- `bergs-nerds`
+- `binswanger`
+- `briefing-aus-bern`
+- `buchclub`
+- `ctrl-alt-r`
+- `das-leben-spielt`
+- `eidgenoessische-randnotizen`
+- `film`
+- `fotobuch`
+- `gedankensplitter`
+- `helfen-sie-mit`
+- `herd-und-hof`
+- `klang`
+- `nahr`
+- `poesie-prosa`
+- `preis-der-republik`
+- `raumdeutung`
+- `sehfeld`
+- `theater`
+- `theorie-praxis`
+- `was-diese-woche-wichtig-war`
+- `was-kommt`
+- `welt-in-serie`
+- `wochenend-newsletter`
+
+Then to run it from a shell:
 
 ```sh
 Rscript --vanilla \
@@ -26,6 +61,6 @@ Rscript --vanilla \
 
 ## E-Mail Example
 
-An E-Mail for a new post in the Republik format [Am Gericht](https://www.republik.ch/format/am-gericht) could look like this:
+An E-Mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht) could look like this:
 
 ![](am-gericht.png)
