@@ -10,7 +10,36 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Read in configuration
+
+```{r, read-in-config}
+if ( file.exists("config.toml") )
+{
+  config <- RcppTOML::parseTOML(input = "config.toml",
+                                escape = FALSE)
+} else
+{
+  config <- list(from = "your.mail@address.suffix",
+                 to = "your.mail@address.suffix",
+                 salutation = "Ladies and gentleman",
+                 auth_cookie = "?")
+}
+```
+
 # Define functions
+
+## Knit `README.Rmd` to `README.md`
+
+```{r, knit-readme}
+knit_readme <- function()
+{
+  knitr::knit2pandoc(input = "README.Rmd",
+                     output = "README.md",
+                     tangle = FALSE,
+                     encoding = "UTF-8",
+                     to = "gfm")
+}
+```
 
 ## Get latest articles from specific Republik format
 
@@ -18,22 +47,8 @@ The code below fetches the link, title and lead of the latest articles from a sp
 
 ```{r, get-latest-article-metadata}
 get_latest_article_metadata <- function(format = "am-gericht",
-                                        auth_cookie = NULL)
+                                        auth_cookie = config$auth_cookie)
 {
-  # read in auth cookie from file
-  if ( is.null(auth_cookie) )
-  {
-    if ( file.exists(".auth_cookie") )
-    {
-      auth_cookie <- readr::read_lines(file = ".auth_cookie",
-                                       skip_empty_rows = TRUE,
-                                       n_max = 1)
-    } else
-    {
-      stop("No `auth_cookie` argument provided and no `.auth_cookie` file found either!")
-    }
-  }
-  
   # COMMENTED OUT because auth doesn't work with httr::GET (why not?)
   # response <- httr::GET(url = glue::glue("https://www.republik.ch/format/{format}"),
   #                       httr::set_cookies(`connect.sid` = auth_cookie))
@@ -96,6 +111,42 @@ get_latest_article_metadata <- function(format = "am-gericht",
 }
 ```
 
+## Update local article metadata
+
+```{r, update-local-article-metadata}
+update_article_metadata <- function()
+{
+  # read in existing local metadata
+  if ( file.exists("article_metadata.rds") )
+  {
+    article_metadata <<- readRDS(file = "article_metadata.rds")
+    
+  } else
+  {
+    article_metadata <<- tibble::tibble(format = character(0),
+                                        href = character(0),
+                                        title = character(0),
+                                        lead = character(0),
+                                        is_mailed = logical(0))
+  }
+  
+  # update metadata
+  article_metadata <<-
+    article_metadata %>%
+    dplyr::full_join(y = get_latest_article_metadata(format = "am-gericht"),
+                     by = colnames(.) %>% setdiff("is_mailed")) %>%
+    dplyr::full_join(y = get_latest_article_metadata(format = "briefing-aus-bern"),
+                     by = colnames(.) %>% setdiff("is_mailed")) %>%
+    tidyr::replace_na(replace = list(is_mailed = FALSE)) %>%
+    # remove possible duplicates (keep latest metadata)
+    dplyr::arrange(-dplyr::row_number()) %>%
+    dplyr::filter(!duplicated(href))
+  
+  saveRDS(object = article_metadata,
+          file = "article_metadata.rds")
+}
+```
+
 ## Insert CSS into blastula e-mail
 
 ```{r, insert-css-into-blastula}
@@ -110,19 +161,6 @@ insert_css_into_blastula <- function(blastula_email,
   attributes(blastula_email$html_html) <- attrs
   
   return(blastula_email)
-}
-```
-
-## Knit `README.Rmd` to `README.md`
-
-```{r, knit-readme}
-knit_readme <- function()
-{
-  knitr::knit2pandoc(input = "README.Rmd",
-                     output = "README.md",
-                     tangle = FALSE,
-                     encoding = "UTF-8",
-                     to = "gfm")
 }
 ```
 
@@ -154,7 +192,7 @@ send_mail <- function(html_message = "message.html",
   
   system2(command = glue::glue("{mailsend_cmd}"),
           args = glue::glue(
-            "-sub '{subject}' 
+           "-sub '{subject}' 
             -smtp 'smtp.uzh.ch' 
             -port {creds['port']} 
             auth 
@@ -171,39 +209,7 @@ send_mail <- function(html_message = "message.html",
 }
 ```
 
-# Update local article metadata
-
-```{r, update-local-article-metadata}
-# read in existing local metadata
-if ( file.exists("article_metadata.rds") )
-{
-  article_metadata <- readRDS(file = "article_metadata.rds")
-  
-} else
-{
-  article_metadata <- tibble::tibble(format = character(0),
-                                     href = character(0),
-                                     title = character(0),
-                                     lead = character(0),
-                                     is_mailed = logical(0))
-}
-
-# update metadata
-article_metadata %<>%
-  dplyr::full_join(y = get_latest_article_metadata(format = "am-gericht"),
-                   by = colnames(.) %>% setdiff("is_mailed")) %>%
-  dplyr::full_join(y = get_latest_article_metadata(format = "briefing-aus-bern"),
-                   by = colnames(.) %>% setdiff("is_mailed")) %>%
-  tidyr::replace_na(replace = list(is_mailed = FALSE)) %>%
-  # remove possible duplicates (keep latest metadata)
-  dplyr::arrange(-dplyr::row_number()) %>%
-  dplyr::filter(!duplicated(href))
-
-saveRDS(object = article_metadata,
-        file = "article_metadata.rds")
-```
-
-# Send e-mail with new articles
+## Spread new articles
 
 **Remarks:**
 
@@ -229,143 +235,158 @@ saveRDS(object = article_metadata,
                                       creds_file_name = ".mail_credentials")
     ```
 
-## Read in e-mail `from` and `to` address/name
-
-```{r, read-in-sender-details}
-from <- ifelse(file.exists(".from"),
-               readr::read_lines(file = ".from",
-                                 skip_empty_rows = TRUE,
-                                 n_max = 1),
-               "your.mail@address.suffix")
-
-to <- ifelse(file.exists(".to"),
-             readr::read_lines(file = ".to",
-                               skip_empty_rows = TRUE,
-                               n_max = 1),
-             "your.mail@address.suffix")
-
-salutation <- ifelse(file.exists(".salutation"),
-                  readr::read_lines(file = ".salutation",
-                                    skip_empty_rows = TRUE,
-                                    n_max = 1),
-                  "Ladies and gentleman")
-```
-
-## Am Gericht
+### Am Gericht
 
 ```{r, mail-articles-am-gericht}
-if ( article_metadata %>%
-     dplyr::filter(format == "am-gericht") %$%
-     is_mailed %>%
-     all() %>%
-     not() )
+mail_am_gericht <- function()
 {
-  new_articles <-
-    article_metadata %>%
-    dplyr::filter(format == "am-gericht"
-                  & !is_mailed) %>%
-    dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %$%
-    md
-  
-  blastula::compose_email(
-    body = paste0(
-      "{salutation},\n\nDie Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):\n\n",
-      paste(new_articles, collapse = "\n\n"),
-      "\n\n![Symbolbild]",
-      "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)",
-      "\n\nEinen schönen Tag wünscht  \nSalims MailBot \U1F916"),
-    footer = paste0(
-      "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
-      "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
-    insert_css_into_blastula() %$%
-    html_str %>%
-    readr::write_file(path = "message.html")
-
-  send_mail(html_message = "message.html",
-            from = from,
-            to = to,
-            subject = "\U2696\UFE0F Republik am Gericht \U2696\UFE0F",
-            creds_file = ".mail_credentials")
+  if ( article_metadata %>%
+       dplyr::filter(format == "am-gericht") %$%
+       is_mailed %>%
+       all() %>%
+       not() )
+  {
+    new_articles <-
+      article_metadata %>%
+      dplyr::filter(format == "am-gericht"
+                    & !is_mailed) %>%
+      dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %$%
+      md
+    
+    blastula::compose_email(
+      body = paste0(
+        "{config$salutation},\n\nDie Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):\n\n",
+        paste(new_articles, collapse = "\n\n"),
+        "\n\n![Symbolbild]",
+        "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)",
+        "\n\nEinen schönen Tag wünscht  \nSalims MailBot \U1F916"),
+      footer = paste0(
+        "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
+        "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
+      insert_css_into_blastula() %$%
+      html_str %>%
+      readr::write_file(path = "message.html")
+    
+    send_mail(html_message = "message.html",
+              from = config$from,
+              to = config$to,
+              subject = "\U2696\UFE0F Republik am Gericht",
+              creds_file = ".mail_credentials")
+  }
 }
 ```
 
-## Briefing aus Bern (only on Thursdays)
+### Briefing aus Bern (only on Thursdays)
 
 ```{r, mail-articles-briefing-aus-bern}
-if ( (article_metadata %>%
-      dplyr::filter(format == "briefing-aus-bern") %$%
-      is_mailed %>%
-      all() %>%
-      not()) &
-     (Sys.Date() %>%
-      lubridate::wday() %>%
-      magrittr::equals(5)) )
+mail_briefing_aus_bern <- function()
 {
-  new_articles <-
-    article_metadata %>%
-    dplyr::filter(format == "briefing-aus-bern"
-                  & !is_mailed) %>%
-    dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %$%
-    md
-  
-  if ( length(new_articles) > 1 )
+  if ( (article_metadata %>%
+        dplyr::filter(format == "briefing-aus-bern") %$%
+        is_mailed %>%
+        all() %>%
+        not()) &
+       (Sys.Date() %>%
+        lubridate::wday(week_start = 1) %>%
+        magrittr::equals(4)) )
   {
-    stop("More than one new 'Briefing aus Bern' article found!")
+    new_articles <-
+      article_metadata %>%
+      dplyr::filter(format == "briefing-aus-bern"
+                    & !is_mailed) %>%
+      dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %>%
+      dplyr::arrange(href) %$%
+      md %>%
+      dplyr::last()
+    
+    images <- tibble::tibble(
+      url = c("https://gitlab.com/salim-b/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-516.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundesplatz-516.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus-516.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus2-516.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/water-fountain-516.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/museumsnacht-bundeplatz-stereographic-516.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bern-bundesplatz-516.jpg"),
+      credits = c(
+        paste0(
+          "_[Storm brewing over the Parliament](https://www.flickr.com/photos/chreegou/42317245170/)_ von Christian Scheidegger ist lizenziert unter ",
+          "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
+        paste0(
+          "_[Bundesplatz](https://www.flickr.com/photos/schoeband/6514744179/)_ von Andreina Schoeberlein ist lizenziert unter ",
+          "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
+        paste0(
+          "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4450441204/)_ von Martin Abegglen ist lizenziert unter ",
+          "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
+        paste0(
+          "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4875386468/)_ von Martin Abegglen ist lizenziert unter ",
+          "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
+        paste0(
+          "_[Water Fountain](https://www.flickr.com/photos/glodjib/7371568978/)_ von Guido Gloor Modjib ist lizenziert unter ",
+          "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
+        paste0(
+          "_[Museumsnacht Bundeplatz Stereographic](https://www.flickr.com/photos/habi/5546211688/)_ von David Haberthür ist lizenziert unter ",
+          "[CC-BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/)"),
+        paste0(
+          "_[Bern Bundesplatz](https://www.flickr.com/photos/codeseven/3798802986/)_ von Philipp ist lizenziert unter ",
+          "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"))
+    )
+    
+    random_image_choice <-
+      runif(n = 1,
+            min = 1,
+            max = nrow(images)) %>%
+      round(digits = 0)
+    
+    blastula::compose_email(
+      body = paste0(
+        "{config$salutation},\n\nDas heutige [Briefing aus Bern](https://www.republik.ch/format/briefing-aus-bern) der Republik fasst ",
+        "_«das Wichtigste in Kürze aus Parlament, Regierung und Verwaltung, kurz: dem Bundeshaus»_ der letzten 7 Tage zusammen:\n\n",
+        paste(new_articles, collapse = "\n\n"),
+        "\n\n![Symbolbild]",
+        "({images$url[random_image_choice]})",
+        "\n\nEinen schönen Tag wünscht  \nSalims MailBot \U1F916"),
+      footer = paste0(
+        "{images$credits[random_image_choice]}\n\n",
+        "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
+        "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
+      insert_css_into_blastula() %$%
+      html_str %>%
+      readr::write_file(path = "message.html")
+    
+    send_mail(html_message = "message.html",
+              from = config$from,
+              to = config$to,
+              subject = "\U1F1E8\U1F1ED Republik-Briefing aus Bern",
+              creds_file = ".mail_credentials")
   }
-  
-  images <- tibble::tibble(
-    url = c("https://gitlab.com/salim-b/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundesplatz-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus2-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/water-fountain-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/museumsnacht-bundeplatz-stereographic-516.jpg.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bern-bundesplatz-516.jpg"),
-    credits = c(
-      paste0(
-        "_[Storm brewing over the Parliament](https://www.flickr.com/photos/chreegou/42317245170/)_ von Christian Scheidegger ist lizenziert unter ",
-        "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
-      paste0(
-        "_[Bundesplatz](https://www.flickr.com/photos/schoeband/6514744179/)_ von Andreina Schoeberlein ist lizenziert unter ",
-        "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
-      paste0(
-        "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4450441204/)_ von Martin Abegglen ist lizenziert unter ",
-        "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
-      paste0(
-        "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4875386468/)_ von Martin Abegglen ist lizenziert unter ",
-        "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
-      paste0(
-        "_[Water Fountain](https://www.flickr.com/photos/glodjib/7371568978/)_ von Guido Gloor Modjib ist lizenziert unter ",
-        "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
-      paste0(
-        "_[Museumsnacht Bundeplatz Stereographic](https://www.flickr.com/photos/habi/5546211688/)_ von David Haberthür ist lizenziert unter ",
-        "[CC-BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/)"),
-      paste0(
-        "_[Bern Bundesplatz](https://www.flickr.com/photos/codeseven/3798802986/)_ von Philipp ist lizenziert unter ",
-        "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"))
-  )
-  
-  random_image_choice <-
-    runif(n = 1,
-          min = 1,
-          max = nrow(images)) %>%
-    round(digits = 0)
-  
-  blastula::compose_email(
-    body = paste0(
-      "Liebes C2D-Team,\n\nDas heutige [Briefing aus Bern](https://www.republik.ch/format/briefing-aus-bern) der Republik fasst ",
-      "_«das Wichtigste in Kürze aus Parlament, Regierung und Verwaltung, kurz: dem Bundeshaus»_ der letzten 7 Tage zusammen:\n\n",
-      paste(new_articles, collapse = "\n\n"),
-      "\n\n![Symbolbild]",
-      "({images$url[random_image_choice]})",
-      "\n\nEinen schönen Tag wünscht  \nSalims MailBot \U1F916"),
-    footer = paste0(
-      "{images$credits[random_image_choice]}\n\n",
-      "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
-      "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
-    insert_css_into_blastula() %>%
-    blastula::send_email_out(from = from,
-                             to = to,
-                             subject = "\U1F1E8\U1F1ED Republik-Briefing aus Bern \U1F1E8\U1F1ED")
 }
 ```
+
+### Loop
+
+```{r, loop}
+loop <- function()
+{
+  while( TRUE )
+  {
+    # sleep until 6 in the morning
+    lubridate::as_datetime(paste(Sys.Date() + ifelse(lubridate::hour(lubridate::as_datetime(Sys.time(),
+                                                                                            tz = "Europe/Zurich")) < 6L,
+                                                     0L,
+                                                     1L),
+                                 "06:00:00"),
+                           tz = Sys.timezone()) %>%
+      magrittr::subtract(lubridate::as_datetime(Sys.time(),
+                                                tz = Sys.timezone())) %>%
+      hms::as.hms() %>%
+      as.integer() %>%
+      Sys.sleep()
+    
+    # then do your duty
+    update_article_metadata()
+    mail_briefing_aus_bern()
+    mail_am_gericht()
+  }
+}
+```
+

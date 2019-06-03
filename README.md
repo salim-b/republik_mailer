@@ -4,12 +4,55 @@ Send E-Mails spreading recent articles from a certain format of the online newsp
 
 ## Requirements
 
-First of all: This script doesn't allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and you need to provide its value (a cryptographic hash) as the `auth_cookie` argument[^reveal] to the function `get_latest_articles()`. Instead of having to provide an `auth_cookie` argument, the cookie's value can also be stored in a text file named `.auth_cookie` in the same folder as this script.
+First of all: This script doesn't allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and you need to provide its value (a cryptographic hash) as the `auth_cookie` argument[^reveal] to the function `get_latest_articles()`. Instead of having to provide an `auth_cookie` argument, the cookie's value can also be stored in `config.toml` or even a text file named `.auth_cookie` in the same folder as this script.
 
-In addition, the `from` sender address as well as the `to` receiver address and the salutation for the e-mails being sent should be provided in the files `.from`, `.to` and `.salutation` respectively, each located in the working directory.
+In addition, the `from` sender address as well as the `to` receiver address and the salutation for the e-mails being sent should be set in the `config.toml` file, which must be located in the working directory.
 
 
 [^reveal]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector).
+
+
+## Setup
+
+### Install R packages
+
+To install the necessary R packages, run the following:
+
+```r
+install.packages(pkgs = c("glue",
+                          "hms",
+                          "keyring",
+                          "knitr",
+                          "lubridate",
+                          "magrittr",
+                          "remotes",
+                          "rvest",
+                          "tidyverse"))
+                          
+remotes::install_github("rich-iannone/blastula")
+```
+
+### Config
+
+To create the necessary config files, customize and run the following:
+
+```r
+readr::write_lines(path = "config.toml",
+                   x = c("from = 'email@address.domain'",
+                         "to = 'email@address.domain'",
+                         "salutation = 'Ladies and gentleman'",
+                         "auth_cookie = 's%...'"))
+
+blastula::create_email_creds_file(user = "******@address.suffix",
+                                  password = "******",
+                                  host = "smtp.address.suffix",
+                                  port = 587L,
+                                  sender = "Your Name (\U1F916)",
+                                  use_ssl = FALSE,
+                                  use_tls = TRUE,
+                                  authenticate = TRUE,
+                                  creds_file_name = ".mail_credentials")
+```
 
 ## Run the script
 
@@ -52,11 +95,14 @@ Then to run it from a shell:
 
 ```sh
 Rscript --vanilla \
-            -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
-                                          output = tempfile(), \
-                                          quiet = TRUE), \
-                       encoding = 'UTF-8', \
-                       echo = FALSE)"
+         -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
+                                       output = tempfile(), \
+                                       quiet = TRUE), \
+                    encoding = 'UTF-8', \
+                    echo = FALSE) ; \
+             update_article_metadata() ; \
+             mail_am_gericht() ; \
+             mail_briefing_aus_bern()"
 ```
 
 ## E-Mail Example

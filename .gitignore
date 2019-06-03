@@ -12,11 +12,8 @@ Thumbs.db
 .Ruserdata
 
 # API keys and credentials
+config.toml
 .httr-oauth
-.auth_cookie
-.from
-.to
-.salutation
 .mail_credentials
 
 # article metadata
