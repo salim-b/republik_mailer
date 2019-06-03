@@ -126,6 +126,39 @@ knit_readme <- function()
 }
 ```
 
+## Send E-Mail
+
+This is a temporary replacement for `blastula::smtp_send()` until [issue #55](https://github.com/rich-iannone/blastula/issues/55) is fixed.
+
+```{r, send-mail}
+send_mail <- function(html_message = "message.html",
+                      subject,
+                      to,
+                      from,
+                      creds_file,
+                      del_html_message = TRUE)
+{
+  creds <- readRDS(file = creds_file)
+  
+  system2(command = "mailsend-go",
+          args = glue::glue(
+            "-sub '{subject}' 
+            -smtp 'smtp.uzh.ch' 
+            -port {creds['port']} 
+            auth 
+            -user '{creds['user']}' 
+            -pass '{creds['password']}' 
+            -fname '{creds['sender']}' 
+            -from '{from}' 
+            -to '{to}' 
+            body 
+            -file '{html_message}'") %>%
+            stringr::str_squish())
+  
+  if ( del_html_message ) unlink(x = html_message)
+}
+```
+
 # Update local article metadata
 
 ```{r, update-local-article-metadata}
@@ -232,11 +265,15 @@ if ( article_metadata %>%
     footer = paste0(
       "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
       "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
-    insert_css_into_blastula() %>%
-    blastula::smtp_send(from = from,
-                        to = to,
-                        subject = "\U2696\UFE0F Republik am Gericht \U2696\UFE0F",
-                        creds_file = ".mail_credentials")
+    insert_css_into_blastula() %$%
+    html_str %>%
+    readr::write_file(path = "message.html")
+
+  send_mail(html_message = "message.html",
+            from = from,
+            to = to,
+            subject = "\U2696\UFE0F Republik am Gericht \U2696\UFE0F",
+            creds_file = ".mail_credentials")
 }
 ```
 
