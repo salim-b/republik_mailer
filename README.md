@@ -25,6 +25,7 @@ install.packages(pkgs = c("glue",
                           "knitr",
                           "lubridate",
                           "magrittr",
+                          "RcppTOML",
                           "remotes",
                           "rvest",
                           "tidyverse"))
