@@ -38,6 +38,8 @@ knit_readme <- function()
                      tangle = FALSE,
                      encoding = "UTF-8",
                      to = "gfm")
+  
+  if ( file.exists("README.gfm") ) unlink("README.gfm")
 }
 ```
 
