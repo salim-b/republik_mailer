@@ -244,8 +244,8 @@ to <- ifelse(file.exists(".to"),
                                n_max = 1),
              "your.mail@address.suffix")
 
-to_name <- ifelse(file.exists(".to_name"),
-                  readr::read_lines(file = ".to_name",
+salutation <- ifelse(file.exists(".salutation"),
+                  readr::read_lines(file = ".salutation",
                                     skip_empty_rows = TRUE,
                                     n_max = 1),
                   "Ladies and gentleman")
@@ -269,7 +269,7 @@ if ( article_metadata %>%
   
   blastula::compose_email(
     body = paste0(
-      "{to_name},\n\nDie Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):\n\n",
+      "{salutation},\n\nDie Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):\n\n",
       paste(new_articles, collapse = "\n\n"),
       "\n\n![Symbolbild]",
       "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)",

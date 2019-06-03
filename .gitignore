@@ -16,7 +16,7 @@ Thumbs.db
 .auth_cookie
 .from
 .to
-.to_name
+.salutation
 .mail_credentials
 
 # article metadata
