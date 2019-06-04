@@ -378,14 +378,14 @@ loop <- function()
   while( TRUE )
   {
     # sleep until 6 in the morning
-    lubridate::as_datetime(paste(Sys.Date() + ifelse(lubridate::hour(lubridate::as_datetime(Sys.time(),
-                                                                                            tz = "Europe/Zurich")) < 6L,
-                                                     0L,
-                                                     1L),
-                                 "06:00:00"),
-                           tz = Sys.timezone()) %>%
-      magrittr::subtract(lubridate::as_datetime(Sys.time(),
-                                                tz = Sys.timezone())) %>%
+    lubridate::as_datetime(x = paste(Sys.Date() + ifelse(lubridate::hour(lubridate::as_datetime(Sys.time(),
+                                                                                                tz = "Europe/Zurich")) < 6L,
+                                                         0L,
+                                                         1L),
+                                     "06:00:00"),
+                           tz = "Europe/Zurich") %>%
+      magrittr::subtract(lubridate::as_datetime(x = Sys.time(),
+                                                tz = "Europe/Zurich")) %>%
       hms::as.hms() %>%
       as.integer() %>%
       Sys.sleep()
