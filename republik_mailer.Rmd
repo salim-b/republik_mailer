@@ -10,6 +10,12 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Load packages
+
+```{r, load-packages}
+library(magrittr)
+```
+
 # Read in configuration
 
 ```{r, read-in-config}
