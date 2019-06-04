@@ -172,6 +172,38 @@ insert_css_into_blastula <- function(blastula_email,
 }
 ```
 
+## Minify HTML
+
+This is a simple wrapper function around the CLI tool [minify](https://github.com/tdewolff/minify/tree/master/cmd/minify). Please ensure, it's in the system's `$PATH` before using it.
+
+```{r, minify-html}
+minify_html <- function(html,
+                        command = "/home/salim/.executables_links/minify")
+{
+  filepath %>%
+    shQuote(type = "sh") %>%
+    system2(command = command,
+            args = .,
+            stdout = TRUE,
+            stderr = TRUE)
+}
+```
+
+```{r, minify-html-file}
+minify_html_file <- function(filepath,
+                             command = "/home/salim/.executables_links/minify")
+{
+  filepath %>%
+    tools::file_path_as_absolute() %>%
+    shQuote(type = "sh") %>%
+    rep(times = 2) %>%
+    paste0(collapse = " ") %>%
+    paste("-o", .) %>%
+    system2(command = command,
+            args = .)
+}
+```
+
 ## Send E-Mail
 
 This is a temporary replacement for `blastula::smtp_send()` until [issue #55](https://github.com/rich-iannone/blastula/issues/55) is fixed.
@@ -273,6 +305,7 @@ mail_am_gericht <- function()
         "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
       insert_css_into_blastula() %$%
       html_str %>%
+      minify_html() %>%
       readr::write_file(path = "message.html")
     
     send_mail(html_message = "message.html",
@@ -359,6 +392,7 @@ mail_briefing_aus_bern <- function()
         "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
       insert_css_into_blastula() %$%
       html_str %>%
+      minify_html() %>%
       readr::write_file(path = "message.html")
     
     send_mail(html_message = "message.html",
