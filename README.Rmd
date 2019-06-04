@@ -110,4 +110,4 @@ Rscript --vanilla \
 
 An E-Mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht) could look like this:
 
-![](am-gericht.png)
+![](images/am-gericht.png)
