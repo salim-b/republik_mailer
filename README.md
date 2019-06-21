@@ -1,6 +1,6 @@
 # Republik Mailer
 
-Send E-Mails spreading recent articles from a certain format of the online newspaper [Republik](https://www.republik.ch/).
+Send e-mails spreading recent articles from a certain format of the online newspaper [Republik](https://www.republik.ch/).
 
 ## Requirements
 
@@ -106,8 +106,8 @@ Rscript --vanilla \
              mail_briefing_aus_bern()"
 ```
 
-## E-Mail Example
+## E-mail example
 
-An E-Mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht) could look like this:
+An e-mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht) could look like this:
 
 ![](images/am-gericht.png)
