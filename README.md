@@ -35,25 +35,29 @@ remotes::install_github("rich-iannone/blastula")
 
 ### Config
 
-To create the necessary [TOML](https://github.com/toml-lang/toml#readme) config file, customize and run the following:
+1. To create the necessary [TOML](https://github.com/toml-lang/toml#readme) config file, customize and run the following:
 
-```r
-readr::write_lines(path = "config.toml",
-                   x = c("from = 'email@address.domain'",
-                         "to = 'email@address.domain'",
-                         "salutation = 'Ladies and gentleman'",
-                         "auth_cookie = 's%...'"))
+    ```r
+    readr::write_lines(path = "config.toml",
+                       x = c("from = 'email@address.domain'",
+                             "to = 'email@address.domain'",
+                             "salutation = 'Ladies and gentleman'",
+                             "auth_cookie = 's%...'"))
+    ```
 
-blastula::create_email_creds_file(user = "******@address.suffix",
-                                  password = "******",
-                                  host = "smtp.address.suffix",
-                                  port = 587L,
-                                  sender = "Your Name (\U1F916)",
-                                  use_ssl = FALSE,
-                                  use_tls = TRUE,
-                                  authenticate = TRUE,
-                                  creds_file_name = ".mail_credentials")
-```
+2. To save your e-mail sender account credentials to file, customize and run the following:
+
+    ```r
+    blastula::create_email_creds_file(user = "******@address.suffix",
+                                      password = "******",
+                                      host = "smtp.address.suffix",
+                                      port = 587L,
+                                      sender = "Your Name (\U1F916)",
+                                      use_ssl = FALSE,
+                                      use_tls = TRUE,
+                                      authenticate = TRUE,
+                                      creds_file_name = ".mail_credentials")
+    ```
 
 ## Run the script
 
