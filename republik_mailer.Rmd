@@ -51,7 +51,9 @@ knit_readme <- function()
 
 ## Get latest articles from specific Republik format
 
-The code below fetches the link, title and lead of the latest articles from a specific article `format`, like [Am Gericht](https://www.republik.ch/format/am-gericht) for example. You have to provide the value of the `conncet.side` cookie, either as argument `auth_cookie` or in a file `.auth_cookie` in the working directory.
+The code below fetches the link, title and lead of the latest articles from a specific article `format`, like [Am Gericht](https://www.republik.ch/format/am-gericht) for example. You have to provide the value of the `connect.sid` cookie, either as argument `auth_cookie` or in a file `.auth_cookie` in the working directory.
+
+Note that the [cURL](https://curl.haxx.se/) command line tool must be available on the system.
 
 ```{r, get-latest-article-metadata}
 get_latest_article_metadata <- function(format = "am-gericht",
