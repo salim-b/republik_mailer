@@ -74,10 +74,12 @@ get_latest_article_metadata <- function(format = "am-gericht",
   
   # get HTML and extract relevant parts
   article_divs <-
-    system2(command = "curl",
-            args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
-            stdout = TRUE,
-            stderr = TRUE) %>%
+    rlang::with_handlers(error = ~ rlang::abort(message = "Can't fetch content from <republik.ch>!",
+                                                parent = .),
+                         system2(command = "curl",
+                                 args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
+                                 stdout = TRUE,
+                                 stderr = TRUE)) %>%
     stringr::str_subset(pattern = "<body") %>%
     xml2::read_html() %>%
     # extract all <div> nodes that directly contain a <h1> node
@@ -182,12 +184,13 @@ These are simple wrapper functions around the CLI tool [minify](https://github.c
 minify_html <- function(html,
                         command = "minify")
 {
-  filepath %>%
-    shQuote(type = "sh") %>%
-    system2(command = command,
-            args = .,
-            stdout = TRUE,
-            stderr = TRUE)
+  rlang::with_handlers(error = ~ rlang::abort(message = "HTML minification failed!",
+                                              parent = .),
+                       system2(command = fs::path_expand(command),
+                               input = html,
+                               args = "--type=html",
+                               stdout = TRUE,
+                               stderr = TRUE))
 }
 ```
 
@@ -196,12 +199,12 @@ minify_html_file <- function(filepath,
                              command = "minify")
 {
   filepath %>%
-    tools::file_path_as_absolute() %>%
+    fs::path_abs() %>%
     shQuote(type = "sh") %>%
     rep(times = 2) %>%
     paste0(collapse = " ") %>%
     paste("-o", .) %>%
-    system2(command = command,
+    system2(command = fs::path_expand(command),
             args = .)
 }
 ```
