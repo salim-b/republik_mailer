@@ -19,7 +19,8 @@ In addition, the `from` sender address as well as the `to` receiver address and 
 To install the necessary R packages, run the following:
 
 ```r
-install.packages(pkgs = c("glue",
+install.packages(pkgs = c("fs",
+                          "glue",
                           "hms",
                           "keyring",
                           "knitr",
