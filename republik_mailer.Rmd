@@ -235,7 +235,7 @@ send_mail <- function(html_message = "message.html",
 {
   creds <- readRDS(file = creds_file)
   
-  system2(command = glue::glue("{mailsend_cmd}"),
+  system2(command = mailsend_cmd,
           args = glue::glue(
            "-sub '{subject}' 
             -smtp 'smtp.uzh.ch' 
