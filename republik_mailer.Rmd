@@ -28,6 +28,9 @@ if ( file.exists("config.toml") )
   config <- list(from = "your.mail@address.suffix",
                  to = "your.mail@address.suffix",
                  salutation = "Ladies and gentleman",
+                 greetings = "Einen schönen Tag wünscht  \nSalims MailBot \U1F916",
+                 credits = paste("Dies ist eine automatisch generierte Nachricht.",
+                                 "Der zugrundeliegende Code findet sich bei Interesse [hier](https://gitlab.com/salim-b/republik_mailer)."),
                  auth_cookie = "?")
 }
 ```
@@ -126,7 +129,8 @@ get_latest_article_metadata <- function(format = "am-gericht",
 ## Update local article metadata
 
 ```{r, update-local-article-metadata}
-update_article_metadata <- function()
+update_article_metadata <- function(formats = c("am-gericht",
+                                                "briefing-aus-bern"))
 {
   # read in existing local metadata
   if ( file.exists("article_metadata.rds") )
@@ -144,15 +148,55 @@ update_article_metadata <- function()
   
   # update metadata
   article_metadata <<-
-    article_metadata %>%
-    dplyr::full_join(y = get_latest_article_metadata(format = "am-gericht"),
-                     by = colnames(.) %>% setdiff("is_mailed")) %>%
-    dplyr::full_join(y = get_latest_article_metadata(format = "briefing-aus-bern"),
+    formats %>%
+    purrr::map_dfr(.f = get_latest_article_metadata) %>%
+    dplyr::full_join(y = article_metadata,
                      by = colnames(.) %>% setdiff("is_mailed")) %>%
     tidyr::replace_na(replace = list(is_mailed = FALSE)) %>%
     # remove possible duplicates (keep latest metadata)
     dplyr::arrange(-dplyr::row_number()) %>%
     dplyr::filter(!duplicated(href))
+  
+  saveRDS(object = article_metadata,
+          file = "article_metadata.rds")
+}
+```
+
+## Get new articles' `href`s
+
+```{r, get-new-href}
+get_new_hrefs <- function(format)
+{
+  article_metadata %>%
+    dplyr::filter(format == !!format
+                  & !is_mailed) %>%
+    dplyr::arrange(href) %$%
+    href
+}
+```
+
+## Compose new articles
+
+```{r, compose-new-articles}
+compose_new_articles <- function(hrefs)
+{
+  article_metadata %>%
+    dplyr::filter(href %in% hrefs) %>%
+    dplyr::arrange(href) %$%
+    glue::glue("[**{title}**]({href})  \n{lead}")
+}
+```
+
+## Set `is_mailed`
+
+```{r, set-mailed}
+set_mailed <- function(mailed_hrefs)
+{
+  article_metadata <<-
+    article_metadata %>%
+    dplyr::mutate(is_mailed = dplyr::if_else(href %in% mailed_hrefs,
+                                             TRUE,
+                                             is_mailed))
   
   saveRDS(object = article_metadata,
           file = "article_metadata.rds")
@@ -280,45 +324,58 @@ send_mail <- function(html_message = "message.html",
                                       creds_file_name = ".mail_credentials")
     ```
 
-### Am Gericht
-
-```{r, mail-articles-am-gericht}
-mail_am_gericht <- function()
+```{r, spread-new-articles}
+spread_new_articles <- function(format,
+                                subject,
+                                intro,
+                                greetings = config$greetings,
+                                image_url = NULL,
+                                footer = config$credits,
+                                latest_one_only = FALSE)
 {
-  if ( article_metadata %>%
-       dplyr::filter(format == "am-gericht") %$%
-       is_mailed %>%
-       all() %>%
-       not() )
+  # get hyperlinks of unmailed articles of desired format
+  new_hrefs <-
+    get_new_hrefs(format = format) %>%
+    purrr::when(latest_one_only ~ dplyr::last(.),
+                ~ .)
+  
+  if ( length(new_hrefs > 0) )
   {
-    new_articles <-
-      article_metadata %>%
-      dplyr::filter(format == "am-gericht"
-                    & !is_mailed) %>%
-      dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %$%
-      md
-    
+    # compose mail
     blastula::compose_email(
       body = paste0(
-        "{config$salutation},\n\nDie Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):\n\n",
-        paste(new_articles, collapse = "\n\n"),
-        "\n\n![Symbolbild]",
-        "(https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x)",
-        "\n\nEinen schönen Tag wünscht  \nSalims MailBot \U1F916"),
-      footer = paste0(
-        "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
-        "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
+        "{config$salutation},\n\n{intro}\n\n",
+        paste(compose_new_articles(hrefs = new_hrefs), collapse = "\n\n"),
+        dplyr::if_else(!is.null(image_url),
+                       glue::glue("\n\n![Symbolbild]({image_url})"),
+                       ""),
+        "\n\n", greetings),
+      footer = footer) %>%
       insert_css_into_blastula() %$%
       html_str %>%
       minify_html() %>%
       readr::write_file(path = "message.html")
     
+    # send mail
     send_mail(html_message = "message.html",
               from = config$from,
               to = config$to,
-              subject = "\U2696\UFE0F Republik am Gericht",
+              subject = subject,
               creds_file = ".mail_credentials")
   }
+}
+```
+
+### Am Gericht
+
+```{r, mail-articles-am-gericht}
+mail_am_gericht <- function()
+{
+  spread_new_articles(format = "am-gericht",
+                      subject = "\U2696\UFE0F Republik am Gericht",
+                      intro = "Die Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):",
+                      image_url = paste0("https://cdn.republik.space/s3/republik-assets/github/republik/",
+                                         "format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x"))
 }
 ```
 
@@ -327,24 +384,11 @@ mail_am_gericht <- function()
 ```{r, mail-articles-briefing-aus-bern}
 mail_briefing_aus_bern <- function()
 {
-  if ( (article_metadata %>%
-        dplyr::filter(format == "briefing-aus-bern") %$%
-        is_mailed %>%
-        all() %>%
-        not()) &
-       (Sys.Date() %>%
-        lubridate::wday(week_start = 1) %>%
-        magrittr::equals(4)) )
+  if ( Sys.Date() %>%
+       lubridate::wday(week_start = 1) %>%
+       magrittr::equals(4) )
   {
-    new_articles <-
-      article_metadata %>%
-      dplyr::filter(format == "briefing-aus-bern"
-                    & !is_mailed) %>%
-      dplyr::mutate(md = glue::glue("[**{title}**]({href})  \n{lead}")) %>%
-      dplyr::arrange(href) %$%
-      md %>%
-      dplyr::last()
-    
+    # define random image choices
     images <- tibble::tibble(
       url = c("https://gitlab.com/salim-b/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-516.jpg",
               "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundesplatz-516.jpg",
@@ -377,39 +421,30 @@ mail_briefing_aus_bern <- function()
           "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"))
     )
     
+    # choose an image randomly
     random_image_choice <-
       runif(n = 1,
             min = 1,
             max = nrow(images)) %>%
       round(digits = 0)
     
-    blastula::compose_email(
-      body = paste0(
-        "{config$salutation},\n\nDas heutige [Briefing aus Bern](https://www.republik.ch/format/briefing-aus-bern) der Republik fasst ",
-        "_«das Wichtigste in Kürze aus Parlament, Regierung und Verwaltung, kurz: dem Bundeshaus»_ der letzten 7 Tage zusammen:\n\n",
-        paste(new_articles, collapse = "\n\n"),
-        "\n\n![Symbolbild]",
-        "({images$url[random_image_choice]})",
-        "\n\nEinen schönen Tag wünscht  \nSalims MailBot \U1F916"),
-      footer = paste0(
-        "{images$credits[random_image_choice]}\n\n",
-        "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse ",
-        "[hier](https://gitlab.com/salim-b/republik_mailer).")) %>%
-      insert_css_into_blastula() %$%
-      html_str %>%
-      minify_html() %>%
-      readr::write_file(path = "message.html")
-    
-    send_mail(html_message = "message.html",
-              from = config$from,
-              to = config$to,
-              subject = "\U1F1E8\U1F1ED Republik-Briefing aus Bern",
-              creds_file = ".mail_credentials")
+    # spread article
+    spread_new_articles(format = "briefing-aus-bern",
+                        subject = "\U1F1E8\U1F1ED Republik-Briefing aus Bern",
+                        intro = paste("Das heutige [Briefing aus Bern](https://www.republik.ch/format/briefing-aus-bern) der Republik fasst",
+                                      "_«das Wichtigste in Kürze aus Parlament, Regierung und Verwaltung, kurz: dem Bundeshaus»_",
+                                      "der letzten 7 Tage zusammen:"),
+                        image_url = images$url[random_image_choice],
+                        footer = paste0("{images$credits[random_image_choice]}\n\n",
+                                        config$credits),
+                        latest_one_only = TRUE)
   }
 }
 ```
 
 ### Loop
+
+This is a very basic loop function intended to run the functions to spread new articles for an indefinite amount of time. Probably not what you want! 😉
 
 ```{r, loop}
 loop <- function()
@@ -436,4 +471,3 @@ loop <- function()
   }
 }
 ```
-
