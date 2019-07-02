@@ -344,7 +344,7 @@ spread_new_articles <- function(format,
     # compose mail
     blastula::compose_email(
       body = paste0(
-        "{config$salutation},\n\n{intro}\n\n",
+        "{config$salutation}\n\n{intro}\n\n",
         paste(compose_new_articles(hrefs = new_hrefs), collapse = "\n\n"),
         dplyr::if_else(!is.null(image_url),
                        glue::glue("\n\n![Symbolbild]({image_url})"),
