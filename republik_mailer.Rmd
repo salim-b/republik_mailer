@@ -339,7 +339,7 @@ spread_new_articles <- function(format,
     purrr::when(latest_one_only ~ dplyr::last(.),
                 ~ .)
   
-  if ( length(new_hrefs > 0) )
+  if ( length(new_hrefs) > 0 )
   {
     # compose mail
     blastula::compose_email(
