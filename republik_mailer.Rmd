@@ -329,9 +329,11 @@ spread_new_articles <- function(format,
                                 intro,
                                 greetings = config$greetings,
                                 image_url = NULL,
+                                image_text = "Symbolbild",
                                 footer = config$credits,
                                 latest_one_only = FALSE,
-                                only_run_on_days = NULL)
+                                only_run_on_days = NULL,
+                                del_html_message = TRUE)
 {
   # define subfunction
   spread <- function()
@@ -351,7 +353,7 @@ spread_new_articles <- function(format,
           "{config$salutation}\n\n{intro}\n\n",
           paste(compose_new_articles(hrefs = new_hrefs), collapse = "\n\n"),
           dplyr::if_else(!is.null(image_url),
-                         glue::glue("\n\n\n![Symbolbild]({image_url})"),
+                         glue::glue("\n\n\n![{image_text}]({image_url})"),
                          ""),
           "\n\n", greetings),
         footer = footer) %>%
@@ -365,7 +367,8 @@ spread_new_articles <- function(format,
                 from = config$from,
                 to = config$to,
                 subject = subject,
-                creds_file = ".mail_credentials")
+                creds_file = ".mail_credentials",
+                del_html_message = del_html_message)
       
       # update `is_mailed` status
       set_mailed(mailed_hrefs = new_hrefs)
@@ -468,8 +471,9 @@ mail_briefing_aus_bern <- function()
                                     "_«das Wichtigste in Kürze aus Parlament, Regierung und Verwaltung, kurz: dem Bundeshaus»_",
                                     "der letzten 7 Tage zusammen:"),
                       image_url = images$url[random_image_choice],
-                      footer = paste0("{images$credits[random_image_choice]}\n\n",
-                                      config$credits),
+                      image_text = images$credits[random_image_choice] %>% commonmark::markdown_text() %>% stringr::str_extract("^.+(?= von)"),
+                      footer = glue::glue("{images$credits[random_image_choice]}\n\n",
+                                          config$credits),
                       latest_one_only = TRUE,
                       only_run_on_days = 4)
 }
