@@ -280,7 +280,7 @@ send_mail <- function(html_message = "message.html",
   creds <- readRDS(file = creds_file)
   
   system2(command = mailsend_cmd,
-          args = glue::glue(
+          args = glue::glue(stringr::str_squish(
            "-sub '{subject}' 
             -smtp 'smtp.uzh.ch' 
             -port {creds['port']} 
@@ -291,8 +291,7 @@ send_mail <- function(html_message = "message.html",
             -from '{from}' 
             -to '{to}' 
             body 
-            -file '{html_message}'") %>%
-            stringr::str_squish())
+            -file '{html_message}'")))
   
   if ( del_html_message ) unlink(x = html_message)
 }
