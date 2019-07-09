@@ -133,7 +133,7 @@ Then you can directly run this file and save some processing time:
 
 ```sh
 Rscript --vanilla \
-        -e "source(file = republik_mailer-GEN.R, \
+        -e "source(file = 'republik_mailer-GEN.R', \
                    encoding = 'UTF-8', \
                    echo = FALSE) ; \
             update_article_metadata() ; \
@@ -145,6 +145,6 @@ Just remember that you have to `knitr::purl()` again after applying any changes 
 
 ## E-mail example
 
-An e-mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht) could look like this:
+An e-mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht/) could look like this:
 
 ![](images/am-gericht.png)
