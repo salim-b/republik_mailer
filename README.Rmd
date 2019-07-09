@@ -126,7 +126,7 @@ If you plan to run the script regularly, it might be worth to save the purled R 
 Rscript --vanilla \
          -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
                                        output = 'republik_mailer-GEN.R', \
-                                       quiet = TRUE)
+                                       quiet = TRUE)"
 ```
 
 Then you can directly run this file and save some processing time:
