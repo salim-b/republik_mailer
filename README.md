@@ -19,7 +19,8 @@ In addition, the `from` sender address as well as the `to` receiver address and 
 To install the necessary R packages, run the following:
 
 ```r
-install.packages(pkgs = c("fs",
+install.packages(pkgs = c("checkmate",
+                          "fs",
                           "glue",
                           "hms",
                           "keyring",
@@ -126,7 +127,9 @@ If you plan to run the script regularly, it might be worth to save the purled R 
 Rscript --vanilla \
          -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
                                        output = 'republik_mailer-GEN.R', \
-                                       quiet = TRUE)"
+                                       quiet = TRUE),
+                    encoding = 'UTF-8', \
+                    echo = FALSE)"
 ```
 
 Then you can directly run this file and save some processing time:
