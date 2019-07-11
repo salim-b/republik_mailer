@@ -16,5 +16,9 @@ config.toml
 .httr-oauth
 .mail_credentials
 
+# generated R code (by `knitr::purl()`)
+*-GEN.R
+
 # article metadata
 article_metadata.rds
+
