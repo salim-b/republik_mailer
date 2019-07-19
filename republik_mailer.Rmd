@@ -52,9 +52,9 @@ knit_readme <- function()
 }
 ```
 
-## Get latest articles from specific Republik format
+## Get latest article metadata from specific Republik format
 
-The code below fetches the link, title and lead of the latest articles from a specific article `format`, like [Am Gericht](https://www.republik.ch/format/am-gericht) for example. You have to provide the value of the `connect.sid` cookie, either as argument `auth_cookie` or in a file `.auth_cookie` in the working directory.
+The code below fetches the link, title and lead of the latest articles from a specific article `format`, like [Am Gericht](https://www.republik.ch/format/am-gericht) for example. You have to provide the value of the `connect.sid` cookie, either directly as argument `auth_cookie` or in the configuration file `config.toml` in the working directory (recommended).
 
 Note that the [cURL](https://curl.haxx.se/) command line tool must be available on the system.
 
