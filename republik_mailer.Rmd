@@ -222,7 +222,17 @@ insert_css_into_blastula <- function(blastula_email,
 
 ## Minify HTML
 
-These are simple wrapper functions around the CLI tool [minify](https://github.com/tdewolff/minify). Use parameter `command` to specify where its executable is found on your system (just use `command = "minify"` if it's in the system's `$PATH`).
+**Remarks:**
+
+- These are simple wrapper functions around the CLI tool [minify](https://github.com/tdewolff/minify/tree/master/cmd/minify). Use parameter `command` to specify where its executable is found on your system (just leave it at its default `command = "minify"` if it's in the system's `$PATH`).
+
+- Precompiled versions of minify can be downloaded [here](https://github.com/tdewolff/minify/releases). If you want or have to compile it yourself (e.g. for 32-bit plattforms), make sure the [Go distribution](https://golang.org/doc/install) and [Git](https://git-scm.com/downloads) are installed and run the following:
+
+    ```sh
+    go get -u -v github.com/tdewolff/minify/cmd/minify
+    ```
+    
+    This installs/updates minify to your `$GOPATH`. To see where this is, run `go env GOPATH`.
 
 ```{r, minify-html}
 minify_html <- function(html,
