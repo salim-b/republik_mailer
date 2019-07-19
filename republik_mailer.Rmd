@@ -404,7 +404,8 @@ spread_new_articles <- function(format,
     
     if ( Sys.Date() %>%
          lubridate::wday(week_start = 1) %>%
-         magrittr::equals(only_run_on_days) )
+         magrittr::equals(only_run_on_days) %>%
+         any() )
     {
       spread()
     }
