@@ -419,21 +419,21 @@ spread_new_articles <- function(format,
 ### Am Gericht
 
 ```{r, mail-articles-am-gericht}
-mail_am_gericht <- function()
+mail_am_gericht <- function(only_run_on_days = 3)
 {
   spread_new_articles(format = "am-gericht",
                       subject = "\U2696\UFE0F Republik am Gericht",
                       intro = "Die Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):",
                       image_url = paste0("https://cdn.republik.space/s3/republik-assets/github/republik/",
                                          "format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x"),
-                      only_run_on_days = 3)
+                      only_run_on_days = only_run_on_days)
 }
 ```
 
 ### Briefing aus Bern (only on Thursdays)
 
 ```{r, mail-articles-briefing-aus-bern}
-mail_briefing_aus_bern <- function()
+mail_briefing_aus_bern <- function(only_run_on_days = 4)
 {
   # define random image choices
   images <- tibble::tibble(
@@ -486,7 +486,7 @@ mail_briefing_aus_bern <- function()
                       footer = glue::glue("{images$credits[random_image_choice]}\n\n",
                                           config$credits),
                       latest_one_only = TRUE,
-                      only_run_on_days = 4)
+                      only_run_on_days = only_run_on_days)
 }
 ```
 
