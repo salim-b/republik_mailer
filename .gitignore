@@ -22,3 +22,5 @@ config.toml
 # article metadata
 article_metadata.rds
 
+# HTML files (i.a. composed e-mail messages)
+*.html
