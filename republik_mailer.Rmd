@@ -122,7 +122,7 @@ get_latest_article_metadata <- function(format = "am-gericht",
   # make links absolute
   articles$href %<>% paste0("https://www.republik.ch", .)
   
-  return(articles)
+  articles
 }
 ```
 
@@ -217,7 +217,7 @@ insert_css_into_blastula <- function(blastula_email,
   blastula_email$html_html <- blastula_email$html_str
   attributes(blastula_email$html_html) <- attrs
   
-  return(blastula_email)
+  blastula_email
 }
 ```
 
@@ -433,22 +433,6 @@ mail_am_gericht <- function(only_run_on_days = 3)
 }
 ```
 
-### Preis der Republik (only on Thursdays)
-
-```{r, mail-preis-der-republik}
-mail_preis_der_republik <- function(only_run_on_days = 4,
-                                    latest_one_only = TRUE)
-{
-  spread_new_articles(format = "preis-der-republik",
-                      subject = "\U1F3C6 Preis der Republik",
-                      intro = "Der wöchentliche [Preis der Republik](https://www.republik.ch/format/preis-der-republik) wurde soeben verliehen:",
-                      image_url = paste0("https://cdn.repub.ch/s3/republik-assets/github/republik/format-preis-der-republik/images/",
-                                         "bfd51622c2e607f006779492f542bca83942a56a.jpeg?resize=516x"),
-                      latest_one_only = latest_one_only,
-                      only_run_on_days = only_run_on_days)
-}
-```
-
 ### Briefing aus Bern (only on Thursdays)
 
 ```{r, mail-briefing-aus-bern}
@@ -510,6 +494,22 @@ mail_briefing_aus_bern <- function(only_run_on_days = 4,
 }
 ```
 
+### Preis der Republik (only on Thursdays)
+
+```{r, mail-preis-der-republik}
+mail_preis_der_republik <- function(only_run_on_days = 4,
+                                    latest_one_only = TRUE)
+{
+  spread_new_articles(format = "preis-der-republik",
+                      subject = "\U1F3C6 Preis der Republik",
+                      intro = "Der wöchentliche [Preis der Republik](https://www.republik.ch/format/preis-der-republik) wurde soeben verliehen:",
+                      image_url = paste0("https://cdn.repub.ch/s3/republik-assets/github/republik/format-preis-der-republik/images/",
+                                         "bfd51622c2e607f006779492f542bca83942a56a.jpeg?resize=516x"),
+                      latest_one_only = latest_one_only,
+                      only_run_on_days = only_run_on_days)
+}
+```
+
 ### Loop
 
 This is a very basic loop function intended to run the functions to spread new articles for an indefinite amount of time. Probably not what you want! 😉
@@ -534,8 +534,9 @@ loop <- function()
     
     # then do your duty
     update_article_metadata()
-    mail_briefing_aus_bern()
     mail_am_gericht()
+    mail_briefing_aus_bern()
+    mail_preis_der_republik()
   }
 }
 ```
