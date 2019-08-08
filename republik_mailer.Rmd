@@ -325,7 +325,7 @@ send_mail <- function(html_message = "message.html",
 - It's recommended to create a file `.mail_credentials` containing the necessary authentication and connection information. You can create it using `blastula::create_email_creds_file()` like the following:
 
     ```r
-    blastula::create_email_creds_file(user = "******@address.suffix",
+    blastula::create_email_creds_file(user = "user@address.suffix",
                                       password = "******",
                                       host = "smtp.address.suffix",
                                       port = 587L,
