@@ -2,7 +2,21 @@
 
 Send e-mails spreading recent articles from a certain format of the online newspaper [Republik](https://www.republik.ch/).
 
-## Requirements
+<!-- TOC BEGIN -- leave this comment untouched to allow auto update -->
+
+## Table of contents
+
+- [Requirements](#-requirements)
+- [Setup](#-setup)
+    - [R packages](#-r-packages)
+    - [Config](#-config)
+- [Customize the script](#-customize-the-script)
+- [Run the script](#-run-the-script)
+- [E-mail example](#-e-mail-example)
+
+<!-- TOC END -- leave this comment untouched to allow auto update -->
+
+## [🠅](#table-of-contents) Requirements
 
 First of all: This script doesn't allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and it's recommended to set the `auth_cookie` key in [`config.toml`](#config) to the cookie's value (a cryptographic hash)[^reveal]. Alternatively you can provide the cookie's value directly to the `auth_cookie` argument of the function `get_latest_article_metadata()`.
 
@@ -12,9 +26,9 @@ In addition, the `from` sender address as well as the `to` receiver address and 
 [^reveal]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector).
 
 
-## Setup
+## [🠅](#table-of-contents) Setup
 
-### R packages
+### [🠅](#table-of-contents) R packages
 
 To install the necessary R packages, run the following:
 
@@ -35,7 +49,7 @@ install.packages(pkgs = c("checkmate",
 remotes::install_github("rich-iannone/blastula")
 ```
 
-### Config
+### [🠅](#table-of-contents) Config
 
 1. To create the necessary [TOML](https://github.com/toml-lang/toml#readme) config file, customize and run the following:
 
@@ -64,11 +78,13 @@ remotes::install_github("rich-iannone/blastula")
                                       creds_file_name = ".mail_credentials")
     ```
 
-## Customize the script
+## [🠅](#table-of-contents) Customize the script
 
 It's recommended that you adapt the script to your needs before you run it, particularly customize [the existing functions to spread new articles](republik_mailer.Rmd#spread-new-articles) or create your own ones.
 
-The unique identifier for an article is always its hyperlink (`href`). The parameters `format` and `formats` of the functions `get_latest_article_metadata()`, `update_article_metadata()` and `spread_new_articles()` respectively can be set to any of the existing Republik formats, including:
+The unique identifier for an article is always its hyperlink (`href`).
+
+The parameters `format` and `formats` of the functions `get_latest_article_metadata()`, `update_article_metadata()` and `spread_new_articles()` respectively can be set to any of the existing Republik formats, including:
 
 - `7-uhr-newsletter`
 - `am-gericht`
@@ -105,7 +121,7 @@ The unique identifier for an article is always its hyperlink (`href`). The param
 
 Besides, the function `spread_new_articles()` expects a `subject` string, an `intro` phrase and optionally an `image_url` for an embedded symbolic picture. If you want to spread only the very latest article of the chosen format, set `latest_one_only` to `TRUE`.
 
-## Run the script
+## [🠅](#table-of-contents) Run the script
 
 To run the script from a shell:
 
@@ -146,7 +162,7 @@ Rscript --vanilla \
 
 Just remember that you have to `knitr::purl()` again after applying any changes to the `.Rmd` source.
 
-## E-mail example
+## [🠅](#table-of-contents) E-mail example
 
 An e-mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht/) could look like this:
 
