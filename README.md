@@ -175,4 +175,4 @@ Just remember that you have to `knitr::purl()` again after applying any changes 
 
 An e-mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht/) could look like this:
 
-![](images/am-gericht.png)
+![](images/mail-am-gericht.png)
