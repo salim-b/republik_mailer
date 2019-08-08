@@ -130,7 +130,8 @@ get_latest_article_metadata <- function(format = "am-gericht",
 
 ```{r, update-local-article-metadata}
 update_article_metadata <- function(formats = c("am-gericht",
-                                                "briefing-aus-bern"))
+                                                "briefing-aus-bern",
+                                                "preis-der-republik"))
 {
   # read in existing local metadata
   if ( file.exists("article_metadata.rds") )
@@ -418,24 +419,41 @@ spread_new_articles <- function(format,
 }
 ```
 
-### Am Gericht
+### Am Gericht (only on Wednesdays)
 
-```{r, mail-articles-am-gericht}
+```{r, mail-am-gericht}
 mail_am_gericht <- function(only_run_on_days = 3)
 {
   spread_new_articles(format = "am-gericht",
                       subject = "\U2696\UFE0F Republik am Gericht",
                       intro = "Die Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):",
-                      image_url = paste0("https://cdn.republik.space/s3/republik-assets/github/republik/",
-                                         "format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x"),
+                      image_url = paste0("https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/",
+                                         "ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x"),
+                      only_run_on_days = only_run_on_days)
+}
+```
+
+### Preis der Republik (only on Thursdays)
+
+```{r, mail-preis-der-republik}
+mail_preis_der_republik <- function(only_run_on_days = 4,
+                                    latest_one_only = TRUE)
+{
+  spread_new_articles(format = "preis-der-republik",
+                      subject = "\U1F3C6 Preis der Republik",
+                      intro = "Der wöchentliche [Preis der Republik](https://www.republik.ch/format/preis-der-republik) wurde soeben verliehen:",
+                      image_url = paste0("https://cdn.repub.ch/s3/republik-assets/github/republik/format-preis-der-republik/images/",
+                                         "bfd51622c2e607f006779492f542bca83942a56a.jpeg?resize=516x"),
+                      latest_one_only = latest_one_only,
                       only_run_on_days = only_run_on_days)
 }
 ```
 
 ### Briefing aus Bern (only on Thursdays)
 
-```{r, mail-articles-briefing-aus-bern}
-mail_briefing_aus_bern <- function(only_run_on_days = 4)
+```{r, mail-briefing-aus-bern}
+mail_briefing_aus_bern <- function(only_run_on_days = 4,
+                                   latest_one_only = TRUE)
 {
   # define random image choices
   images <- tibble::tibble(
@@ -487,7 +505,7 @@ mail_briefing_aus_bern <- function(only_run_on_days = 4)
                       image_text = images$credits[random_image_choice] %>% commonmark::markdown_text() %>% stringr::str_extract("^.+(?= von)"),
                       footer = glue::glue("{images$credits[random_image_choice]}\n\n",
                                           config$credits),
-                      latest_one_only = TRUE,
+                      latest_one_only = latest_one_only,
                       only_run_on_days = only_run_on_days)
 }
 ```
