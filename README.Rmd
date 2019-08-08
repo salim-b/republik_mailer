@@ -68,7 +68,9 @@ remotes::install_github("rich-iannone/blastula")
 
 It's recommended that you adapt the script to your needs before you run it, particularly customize [the existing functions to spread new articles](republik_mailer.Rmd#spread-new-articles) or create your own ones.
 
-The unique identifier for an article is always its hyperlink (`href`). The parameters `format` and `formats` of the functions `get_latest_article_metadata()`, `update_article_metadata()` and `spread_new_articles()` respectively can be set to any of the existing Republik formats, including:
+The unique identifier for an article is always its hyperlink (`href`).
+
+The parameters `format` and `formats` of the functions `get_latest_article_metadata()`, `update_article_metadata()` and `spread_new_articles()` respectively can be set to any of the existing Republik formats, including:
 
 - `7-uhr-newsletter`
 - `am-gericht`
