@@ -515,7 +515,7 @@ mail_preis_der_republik <- function(only_run_on_days = 4,
 {
   spread_new_articles(format = "preis-der-republik",
                       subject = "\U1F3C6 Preis der Republik",
-                      intro = "Der wöchentliche [Preis der Republik](https://www.republik.ch/format/preis-der-republik) wurde soeben verliehen:",
+                      intro = "Der allwöchentliche [Preis der Republik](https://www.republik.ch/format/preis-der-republik) wurde soeben verliehen:",
                       image_url = paste0("https://cdn.repub.ch/s3/republik-assets/github/republik/format-preis-der-republik/images/",
                                          "bfd51622c2e607f006779492f542bca83942a56a.jpeg?resize=516x"),
                       latest_one_only = latest_one_only,
