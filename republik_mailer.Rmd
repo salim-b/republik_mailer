@@ -547,6 +547,7 @@ loop <- function()
     
     # then do your duty
     update_article_metadata()
+    mail_alles_was_recht_ist()
     mail_am_gericht()
     mail_briefing_aus_bern()
     mail_preis_der_republik()
