@@ -109,18 +109,18 @@ get_latest_article_metadata <- function(format = "am-gericht",
                      rvest::html_node(css = "h1") %>%
                      rvest::html_text())
   
-  # add article leads
-  articles %<>%
-    dplyr::mutate(lead =
-                    glue::glue("//a[@href='{articles$href}']") %>%
-                    purrr::map(~ rvest::html_nodes(x = article_divs,
-                                                   xpath = .x)) %>%
-                    purrr::map(~ .x[2]) %>%
-                    purrr::map(.f = rvest::html_text) %>%
-                    purrr::flatten_chr())
-  
-  # make links absolute
-  articles$href %<>% paste0("https://www.republik.ch", .)
+  articles %<>% dplyr::mutate(
+    # add article leads
+    lead =
+      glue::glue("//a[@href='{articles$href}']") %>%
+      purrr::map(~ rvest::html_nodes(x = article_divs,
+                                     xpath = .x)) %>%
+      purrr::map(~ .x[2]) %>%
+      purrr::map(.f = rvest::html_text) %>%
+      purrr::flatten_chr(),
+    # make links absolute
+    href = paste0("https://www.republik.ch", href)
+  )
   
   articles
 }
