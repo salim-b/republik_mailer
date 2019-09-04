@@ -75,14 +75,47 @@ get_latest_article_metadata <- function(format = "am-gericht",
   #   stringr::str_detect(pattern = "Sie brauchen eine Mitgliedschaft, um die Beiträge zu lesen.",
   #                       negate = TRUE)
   
-  # get HTML and extract relevant parts
-  article_divs <-
-    rlang::with_handlers(error = ~ rlang::abort(message = "Can't fetch content from <republik.ch>!",
-                                                parent = .),
-                         system2(command = "curl",
-                                 args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
-                                 stdout = TRUE,
-                                 stderr = TRUE)) %>%
+  do_repeat <- TRUE
+  counter <- 1L
+  
+  while( do_repeat )
+  {
+    # get HTML
+    article_divs <-
+      rlang::with_handlers(error = ~ rlang::abort(message = glue::glue("Can't fetch content from <https://www.republik.ch/format/{format}>!"),
+                                                  parent = .),
+                           system2(command = "curl",
+                                   args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
+                                   stdout = TRUE,
+                                   stderr = TRUE))
+    
+    curl_status_code <- attr(x = article_divs,
+                             which = "status")
+    
+    # ensure curl exited with status `0` (success), otherwise try again 1 minute later
+    if ( !is.null(curl_status_code) )
+    {
+      if ( counter < 11L )
+      {
+        rlang::warn(message = glue::glue("Curl failed to fetch content from <https://www.republik.ch/format/{format}> with exit status code ",
+                                         "{curl_status_code}!\n For an overview of curl exit status codes, see ",
+                                         "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>.\n\nTrying again in 1 minute ..."))
+        
+        counter %<>% magrittr::add(1L)
+        Sys.sleep(time = 60)
+        
+      } else
+      {
+        rlang::abort(message = glue::glue("Curl repeatedly failed to fetch content from <https://www.republik.ch/format/{format}>! Last exit status code was ",
+                                          "{curl_status_code}!\nFor an overview of curl status codes, see ",
+                                          "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>."))
+      }
+      
+    } else do_repeat <- FALSE
+  }
+  
+  # extract relevant parts of HTML (aka "scraping")
+  article_divs %<>%
     stringr::str_subset(pattern = "<body") %>%
     xml2::read_html() %>%
     # extract all <div> nodes that directly contain a <h1> node
@@ -91,8 +124,7 @@ get_latest_article_metadata <- function(format = "am-gericht",
   # ensure we actually got something
   if ( length(article_divs) == 0 )
   {
-    stop("No articles could be scraped! Maybe your `auth_cookie` is invalid?",
-         call. = FALSE)
+    rlang::abort("No articles could be scraped! Maybe your `auth_cookie` is invalid?")
   }
   
   # extract article links and titles
