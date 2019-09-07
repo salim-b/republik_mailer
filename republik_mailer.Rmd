@@ -230,7 +230,9 @@ update_article_metadata <- function(formats = c("alles-was-recht-ist",
     tidyr::replace_na(replace = list(is_mailed = FALSE)) %>%
     # remove possible duplicates (keep latest metadata)
     dplyr::arrange(-dplyr::row_number()) %>%
-    dplyr::filter(!duplicated(href))
+    dplyr::filter(!duplicated(href)) %>%
+    # sort tibble
+    dplyr::arrange(format, href)
   
   saveRDS(object = article_metadata,
           file = "article_metadata.rds")
