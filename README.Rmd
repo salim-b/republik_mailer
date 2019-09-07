@@ -23,14 +23,17 @@ install.packages(pkgs = c("checkmate",
                           "fs",
                           "glue",
                           "hms",
+                          "httr",
                           "keyring",
                           "knitr",
                           "lubridate",
                           "magrittr",
                           "RcppTOML",
                           "remotes",
+                          "rlang",
                           "rvest",
-                          "tidyverse"))
+                          "tidyverse",
+                          "xml2))
                           
 remotes::install_github("rich-iannone/blastula")
 ```
