@@ -260,7 +260,7 @@ compose_new_articles <- function(hrefs)
   article_metadata %>%
     dplyr::filter(href %in% hrefs) %>%
     dplyr::arrange(href) %$%
-    glue::glue("[**{title}**]({href})  \n{lead}")
+    glue::glue("[**{title}**]({href}){dplyr::if_else(is.na(lead), '', paste0('  \n', lead))}")
 }
 ```
 
