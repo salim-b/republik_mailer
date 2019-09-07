@@ -59,70 +59,111 @@ The code below fetches the link, title and lead of the latest articles from a sp
 Note that the [cURL](https://curl.haxx.se/) command line tool must be available on the system.
 
 ```{r, get-latest-article-metadata}
-get_latest_article_metadata <- function(format = "am-gericht",
+get_latest_article_metadata <- function(format,
                                         auth_cookie = config$auth_cookie)
 {
-  # COMMENTED OUT because auth doesn't work with httr::GET (why not?)
-  # response <- httr::GET(url = glue::glue("https://www.republik.ch/format/{format}"),
-  #                       httr::set_cookies(`connect.sid` = auth_cookie))
-  #
-  # alternative method to set cookies for httr (doesn't work either!)
-  # httr::config(cookie = glue::glue("connect.sid={auth_cookie}"))
-  #
-  # test if authentication was successful
-  # response %>%
-  #   httr::content(as = "text") %>%
-  #   stringr::str_detect(pattern = "Sie brauchen eine Mitgliedschaft, um die Beiträge zu lesen.",
-  #                       negate = TRUE)
-  
-  do_repeat <- TRUE
-  counter <- 1L
-  
-  while( do_repeat )
+  # URL-decode `auth_cookie` if necessary
+  if ( !stringr::str_detect(string = auth_cookie,
+                            pattern = ":") )
   {
-    # get HTML
-    article_divs <-
-      rlang::with_handlers(error = ~ rlang::abort(message = glue::glue("Can't fetch content from <https://www.republik.ch/format/{format}>!"),
-                                                  parent = .),
-                           system2(command = "curl",
-                                   args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
-                                   stdout = TRUE,
-                                   stderr = TRUE))
-    
-    curl_status_code <- attr(x = article_divs,
-                             which = "status")
-    
-    # ensure curl exited with status `0` (success), otherwise try again 1 minute later
-    if ( !is.null(curl_status_code) )
+    auth_cookie %<>% xml2::url_unescape()
+  }
+  
+  # COMMENTED OUT alternative way to fetch HTML using external curl CLI
+  # do_repeat <- TRUE
+  # counter <- 1L
+  # 
+  # while( do_repeat )
+  # {
+  #   # get HTML
+  #   article_divs <-
+  #     rlang::with_handlers(error = ~ rlang::abort(message = glue::glue("Can't fetch content from <https://www.republik.ch/format/{format}>!"),
+  #                                                 parent = .),
+  #                          system2(command = "curl",
+  #                                  args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
+  #                                  stdout = TRUE,
+  #                                  stderr = TRUE))
+  #   
+  #   curl_status_code <- attr(x = article_divs,
+  #                            which = "status")
+  #   
+  #   # ensure curl exited with status `0` (success), otherwise try again 1 minute later
+  #   if ( !is.null(curl_status_code) )
+  #   {
+  #     if ( counter < 10L )
+  #     {
+  #       rlang::warn(message = glue::glue("Curl failed to fetch content from <https://www.republik.ch/format/{format}> with exit status code ",
+  #                                        "{curl_status_code}!\n For an overview of curl exit status codes, see ",
+  #                                        "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>.\n\nTrying again in 1 minute ..."))
+  #       
+  #       counter %<>% magrittr::add(1L)
+  #       Sys.sleep(time = 60)
+  #       
+  #     } else
+  #     {
+  #       rlang::abort(message = glue::glue("Curl repeatedly failed to fetch content from <https://www.republik.ch/format/{format}>! Last exit status code was ",
+  #                                         "{curl_status_code}!\nFor an overview of curl status codes, see ",
+  #                                         "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>."))
+  #     }
+  #     
+  #   } else do_repeat <- FALSE
+  # }
+  # 
+  # # extract relevant parts of HTML (aka "scraping")
+  # response %<>%
+  #   stringr::str_subset(pattern = "<body") %>%
+  #   xml2::read_html() %>%
+  #   # extract all <div> nodes that directly contain a <h1> node
+  #   rvest::html_nodes(xpath = "//div[h1]")
+  
+  # fetch HTML (retry 10 times in increasing intervals in case of any error)
+  ## initialize retry counter
+  retry_counter <- 1L
+  
+  ## define custom error handler
+  optimistic_error_handler <- function(error)
+  {
+    if ( retry_counter < 10 )
     {
-      if ( counter < 11L )
-      {
-        rlang::warn(message = glue::glue("Curl failed to fetch content from <https://www.republik.ch/format/{format}> with exit status code ",
-                                         "{curl_status_code}!\n For an overview of curl exit status codes, see ",
-                                         "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>.\n\nTrying again in 1 minute ..."))
-        
-        counter %<>% magrittr::add(1L)
-        Sys.sleep(time = 60)
-        
-      } else
-      {
-        rlang::abort(message = glue::glue("Curl repeatedly failed to fetch content from <https://www.republik.ch/format/{format}>! Last exit status code was ",
-                                          "{curl_status_code}!\nFor an overview of curl status codes, see ",
-                                          "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>."))
-      }
+      retry_counter <<- retry_counter + 1L
+      Sys.sleep(time = 10 * retry_counter)
+      fetch_html()
       
-    } else do_repeat <- FALSE
+    } else
+    {
+      rlang::abort(message = glue::glue("Repeatedly failed to fetch content from <https://www.republik.ch/format/{format}>!"),
+                   parent = error)
+    }
+  }
+  
+  ## define function to fetch HTML deploying above error handler
+  fetch_html <- function()
+  {
+    rlang::with_handlers(httr::GET(url = glue::glue("https://www.republik.ch/format/{format}"),
+                                   httr::set_cookies(`connect.sid` = auth_cookie)),
+                         error = optimistic_error_handler)
+  }
+  
+  ## fetch HTML at last
+  response <- fetch_html()
+  
+  # test if authentication was successful
+  if ( response %>%
+       httr::content(as = "text") %>%
+       stringr::str_detect(pattern = "Sie brauchen eine Mitgliedschaft, um die Beiträge zu lesen.") )
+  {
+    stop("Authentication failed which means the provided `auth_cookie` value is either wrong or expired! `auth_cookie` was set to:\n", auth_cookie)
   }
   
   # extract relevant parts of HTML (aka "scraping")
-  article_divs %<>%
-    stringr::str_subset(pattern = "<body") %>%
-    xml2::read_html() %>%
+  response %<>%
+    httr::content(as = "parsed") %>%
+    rvest::html_node("body") %>%
     # extract all <div> nodes that directly contain a <h1> node
     rvest::html_nodes(xpath = "//div[h1]")
   
   # ensure we actually got something
-  if ( length(article_divs) == 0 )
+  if ( length(response) == 0 )
   {
     rlang::abort("No articles could be scraped! Maybe your `auth_cookie` is invalid?")
   }
@@ -132,12 +173,12 @@ get_latest_article_metadata <- function(format = "am-gericht",
     tibble::tibble(format =
                      format,
                    href =
-                     article_divs %>%
+                     response %>%
                      rvest::html_node(css = "h1") %>%
                      rvest::html_node(css = "a") %>%
                      rvest::html_attr(name = "href"),
                    title =
-                     article_divs %>%
+                     response %>%
                      rvest::html_node(css = "h1") %>%
                      rvest::html_text())
   
@@ -145,10 +186,10 @@ get_latest_article_metadata <- function(format = "am-gericht",
     # add article leads
     lead =
       glue::glue("//a[@href='{articles$href}']") %>%
-      purrr::map(~ rvest::html_nodes(x = article_divs,
+      purrr::map(~ rvest::html_nodes(x = response,
                                      xpath = .x)) %>%
-      purrr::map(~ .x[2]) %>%
-      purrr::map(.f = rvest::html_text) %>%
+      purrr::map(rvest::html_text) %>%
+      purrr::map(magrittr::extract, 2) %>%
       purrr::flatten_chr(),
     # make links absolute
     href = paste0("https://www.republik.ch", href)
@@ -166,7 +207,7 @@ update_article_metadata <- function(formats = c("alles-was-recht-ist",
                                                 "briefing-aus-bern",
                                                 "preis-der-republik"))
 {
-  # read in existing local metadata
+  # read in existing local metadata if possible
   if ( file.exists("article_metadata.rds") )
   {
     article_metadata <<- readRDS(file = "article_metadata.rds")
