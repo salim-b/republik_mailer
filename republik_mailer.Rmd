@@ -498,25 +498,28 @@ spread_new_articles <- function(format,
 ### Alles was Recht ist
 
 ```{r, mail-alles-was-recht-ist}
-mail_alles_was_recht_ist <- function()
+mail_alles_was_recht_ist <- function(latest_one_only = TRUE)
 {
   spread_new_articles(format = "alles-was-recht-ist",
                       subject = "\U2696\UFE0F Alles, was Recht ist in der Republik",
                       intro = "Heute ist ein neuer Beitrag in der Republik zu Recht und Justiz erschienen:",
-                      image_url = "https://gitlab.com/salim-b/republik_mailer/raw/master/images/justitia-516.png")
+                      image_url = "https://gitlab.com/salim-b/republik_mailer/raw/master/images/justitia-516.png",
+                      latest_one_only = latest_one_only)
 }
 ```
 
 ### Am Gericht (only on Wednesdays)
 
 ```{r, mail-am-gericht}
-mail_am_gericht <- function(only_run_on_days = 3)
+mail_am_gericht <- function(only_run_on_days = 3,
+                            latest_one_only = TRUE)
 {
   spread_new_articles(format = "am-gericht",
                       subject = "\U1F3DB\UFE0F Republik am Gericht",
                       intro = "Die Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):",
                       image_url = paste0("https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/",
                                          "ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x"),
+                      latest_one_only = latest_one_only,
                       only_run_on_days = only_run_on_days)
 }
 ```
