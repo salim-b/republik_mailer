@@ -158,7 +158,7 @@ get_latest_article_metadata <- function(format,
   # extract relevant parts of HTML (aka "scraping")
   response %<>%
     httr::content(as = "parsed") %>%
-    rvest::html_node("body") %>%
+    rvest::html_node(css = "body") %>%
     # extract all <div> nodes that directly contain a <h1> node
     rvest::html_nodes(xpath = "//div[h1]")
   
