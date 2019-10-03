@@ -14,7 +14,7 @@ Thumbs.db
 # API keys and credentials
 config.toml
 .httr-oauth
-.mail_credentials
+.smtp_credentials
 
 # generated R code (by `knitr::purl()`)
 *-GEN.R

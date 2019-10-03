@@ -356,33 +356,30 @@ unlink("m.tar.gz)
 Then use `send_mail(mailsend_cmd = "mailsend-go-dir/mailsend-go")`.
 
 ```{r, send-mail}
-send_mail <- function(html_message = "message.html",
+send_mail <- function(html_message_file,
                       subject,
                       to,
                       from,
                       creds_file,
                       mailsend_cmd = "mailsend-go",
-                      quiet = TRUE,
-                      del_html_message = TRUE)
+                      quiet = TRUE)
 {
-  creds <- readRDS(file = creds_file)
+  creds <- blastula::creds_file(file = creds_file)
   
   system2(command = mailsend_cmd,
           args = glue::glue(stringr::str_squish(paste0(
            dplyr::if_else(quiet, "-q ", ""),
            "-sub '{subject}' 
-            -smtp 'smtp.uzh.ch' 
+            -smtp '{creds['host']}' 
             -port {creds['port']} 
             auth 
             -user '{creds['user']}' 
             -pass '{creds['password']}' 
-            -fname '{creds['sender']}' 
+            -fname '{creds['sender_name']}' 
             -from '{from}' 
             -to '{to}' 
             body 
-            -file '{html_message}'"))))
-  
-  if ( del_html_message ) unlink(x = html_message)
+            -file '{html_message_file}'"))))
 }
 ```
 
@@ -393,77 +390,29 @@ send_mail <- function(html_message = "message.html",
 - Currently the package [blastula](https://rich-iannone.github.io/blastula/) used to send e-mails is undergoing heavy changes, i.a. the underlying program used for SMTP [is being replaced](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#sending-email) by [mailsend-go](https://github.com/muquit/mailsend-go). Therefore you should use the development version installed directly from GitHub using:
 
     ```r
-    remotes::install_github("rich-iannone/blastula")
+    remotes::install_github(repo = "rich-iannone/blastula")
     ```
 
-- Beforehand you should [install mailsend-go](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#installation-of-mailsend-go). On Ubuntu Linux you also have to install the Debian package `libsodium-dev` which is required by the R package `sodium`, which in turn is a dependency of the R package `keyring`, which is finally a dependency of the `blastula` R package.
+- Beforehand you should [install mailsend-go](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#installation-of-mailsend-go).
 
-- It's recommended to create a file `.mail_credentials` containing the necessary authentication and connection information. You can create it using `blastula::create_email_creds_file()` like the following:
+    On Debian/Ubuntu Linux you also have to install the Debian package `libsodium-dev` which is required by the R package `sodium`, which in turn is a dependency of the R package `keyring`, which is finally a dependency of the `blastula` R package.
 
-    ```r
-    blastula::create_email_creds_file(user = "user@address.suffix",
-                                      password = "******",
-                                      host = "smtp.address.suffix",
-                                      port = 587L,
-                                      sender = "Your Name (\U1F916)",
-                                      use_ssl = FALSE,
-                                      use_tls = TRUE,
-                                      authenticate = TRUE,
-                                      creds_file_name = ".mail_credentials")
-    ```
+- It's recommended to store the SMTP credentials to file. See the [README](README.md#-config) for details.
 
 ```{r, spread-new-articles}
 spread_new_articles <- function(format,
                                 subject,
                                 intro,
+                                from = config$from,
+                                to = config$to,
+                                salutation = config$salutation,
                                 greetings = config$greetings,
                                 image_url = NULL,
                                 image_text = "Symbolbild",
                                 footer = config$credits,
                                 latest_one_only = FALSE,
-                                only_run_on_days = NULL,
-                                del_html_message = TRUE)
+                                only_run_on_days = NULL)
 {
-  # define subfunction
-  spread <- function()
-  {
-    # get hyperlinks of unmailed articles of desired format
-    new_hrefs <-
-      get_new_hrefs(format = format) %>%
-      purrr::when(length(.) == 0 ~ .,
-                  latest_one_only ~ dplyr::last(.),
-                  ~ .)
-    
-    if ( length(new_hrefs) > 0 )
-    {
-      # compose mail
-      blastula::compose_email(
-        body = paste0(
-          "{config$salutation}\n\n{intro}\n\n",
-          paste(compose_new_articles(hrefs = new_hrefs), collapse = "\n\n"),
-          dplyr::if_else(!is.null(image_url),
-                         glue::glue("\n\n\n![{image_text}]({image_url})"),
-                         ""),
-          "\n\n", greetings),
-        footer = footer) %>%
-        insert_css_into_blastula() %$%
-        html_str %>%
-        minify_html() %>%
-        readr::write_file(path = "message.html")
-      
-      # send mail
-      send_mail(html_message = "message.html",
-                from = config$from,
-                to = config$to,
-                subject = subject,
-                creds_file = ".mail_credentials",
-                del_html_message = del_html_message)
-      
-      # update `is_mailed` status
-      set_mailed(mailed_hrefs = new_hrefs)
-    }
-  }
-  
   if ( !is.null(only_run_on_days) )
   {
     type_check <- only_run_on_days %>% purrr::map(.f = checkmate::check_int,
@@ -486,11 +435,82 @@ spread_new_articles <- function(format,
          magrittr::equals(only_run_on_days) %>%
          any() )
     {
-      spread()
+      spread(format = format,
+             subject = subject,
+             intro = intro,
+             from = from,
+             to = to,
+             salutation = salutation,
+             greetings =greetings ,
+             image_url = image_url,
+             image_text = image_text,
+             footer = footer,
+             latest_one_only = latest_one_only)
     }
   } else
   {
-    spread()
+    spread(format = format,
+           subject = subject,
+           intro = intro,
+           from = from,
+           to = to,
+           salutation = salutation,
+           greetings =greetings ,
+           image_url = image_url,
+           image_text = image_text,
+           footer = footer,
+           latest_one_only = latest_one_only)
+  }
+}
+
+spread <- function(format,
+                   subject,
+                   intro,
+                   from,
+                   to,
+                   salutation,
+                   greetings,
+                   image_url,
+                   image_text,
+                   footer,
+                   latest_one_only)
+{
+  # get hyperlinks of unmailed articles of desired format
+  new_hrefs <-
+    get_new_hrefs(format = format) %>%
+    purrr::when(length(.) == 0 ~ .,
+                latest_one_only ~ dplyr::last(.),
+                ~ .)
+  
+  if ( length(new_hrefs) > 0 )
+  {
+    # compose mail
+    blastula::compose_email(
+      body = paste0(
+        "{salutation}\n\n{intro}\n\n",
+        paste(compose_new_articles(hrefs = new_hrefs), collapse = "\n\n"),
+        dplyr::if_else(!is.null(image_url),
+                       glue::glue("\n\n\n![{image_text}]({image_url})"),
+                       ""),
+        "\n\n", greetings),
+      footer = footer) %>%
+      insert_css_into_blastula() %$%
+      html_str %>%
+      minify_html() %>%
+      readr::write_file(path = "message.html")
+    
+    # send mail
+    send_mail(html_message_file = "message.html",
+              from = from,
+              to = to,
+              subject = subject,
+              creds_file = ".smtp_credentials")
+    
+    # delete HTML message file
+    fs::file_delete("message.html")
+    
+    # update `is_mailed` status
+    set_mailed(mailed_hrefs = new_hrefs)
   }
 }
 ```

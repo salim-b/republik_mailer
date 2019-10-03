@@ -35,7 +35,7 @@ install.packages(pkgs = c("checkmate",
                           "tidyverse",
                           "xml2))
                           
-remotes::install_github("rich-iannone/blastula")
+remotes::install_github(repo = "rich-iannone/blastula")
 ```
 
 ### Config
@@ -53,18 +53,28 @@ remotes::install_github("rich-iannone/blastula")
                              'auth_cookie = "s%..."'))
     ```
 
-2. To save your e-mail sender account credentials to file, [customize](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#creating-a-credentials-file) and run the following:
+2. Save your e-mail sender account credentials to file.
+
+    To use [STARTTLS](https://en.wikipedia.org/wiki/Opportunistic_TLS) (usually over port 587), [customize](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#storing-credentials-and-smtp-configuration-data-for-later-use) and run the following:
 
     ```r
-    blastula::create_email_creds_file(user = "******@address.suffix",
-                                      password = "******",
-                                      host = "smtp.address.suffix",
-                                      port = 587L,
-                                      sender = "Your Name (\U1F916)",
-                                      use_ssl = FALSE,
-                                      use_tls = TRUE,
-                                      authenticate = TRUE,
-                                      creds_file_name = ".mail_credentials")
+    blastula::create_smtp_creds_file(file = ".smtp_credentials",
+                                     user = "user@address.suffix",
+                                     host = "smtp.address.suffix",
+                                     port = 587L,
+                                     use_ssl = FALSE,
+                                     sender_name = "Your Name (\U1F916)")
+    ```
+
+    Or to use [implicit SSL/TLS](https://tools.ietf.org/html/rfc8314#section-3.3) (usually over port 465), [customize](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#storing-credentials-and-smtp-configuration-data-for-later-use) and run the following:
+
+    ```r
+    blastula::create_smtp_creds_file(file = ".smtp_credentials",
+                                     user = "user@address.suffix",
+                                     host = "smtp.address.suffix",
+                                     port = 465L,
+                                     use_ssl = TRUE,
+                                     sender_name = "Your Name (\U1F916)")
     ```
 
 ## Customize the script
