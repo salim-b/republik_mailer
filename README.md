@@ -47,7 +47,7 @@ install.packages(pkgs = c("checkmate",
                           "rlang",
                           "rvest",
                           "tidyverse",
-                          "xml2))
+                          "xml2"))
                           
 remotes::install_github(repo = "rich-iannone/blastula")
 ```
