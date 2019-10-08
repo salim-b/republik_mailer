@@ -639,7 +639,7 @@ mail_briefing_aus_bern <- function(only_run_on_days = 4,
 ### Preis der Republik (only on Thursdays)
 
 ```{r, mail-preis-der-republik}
-mail_preis_der_republik <- function(only_run_on_days = 4,
+mail_preis_der_republik <- function(only_run_on_days = NULL,
                                     latest_one_only = TRUE)
 {
   spread_new_articles(format = "preis-der-republik",
