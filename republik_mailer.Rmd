@@ -399,6 +399,12 @@ send_mail <- function(html_message_file,
 
 - It's recommended to store the SMTP credentials to file. See the [README](README.md#-config) for details.
 
+- It's recommended to assign the class `img-responsive` to images embedded in the mail text. Currently this _cannot_ be achieved by using Markdown (`![Alternative Text...](https://...)`). Instead you have to use plain HTML:
+
+    ```html
+    <img class='img-responsive' src='https://...' alt='Alternative Text...' />
+    ```
+
 ```{r, spread-new-articles}
 spread_new_articles <- function(format,
                                 subject,
@@ -490,7 +496,7 @@ spread <- function(format,
         "{salutation}\n\n{intro}\n\n",
         paste(compose_new_articles(hrefs = new_hrefs), collapse = "\n\n"),
         dplyr::if_else(!is.null(image_url),
-                       glue::glue("\n\n\n![{image_text}]({image_url})"),
+                       glue::glue("\n\n\n<img class=\"img-responsive\" src=\"{image_url}\" alt=\"{image_text}\" />"),
                        ""),
         "\n\n", greetings),
       footer = footer) %>%
@@ -523,7 +529,7 @@ mail_alles_was_recht_ist <- function(latest_one_only = TRUE)
   spread_new_articles(format = "alles-was-recht-ist",
                       subject = "\U2696\UFE0F Alles, was Recht ist in der Republik",
                       intro = "Heute ist ein neuer Beitrag in der Republik zu Recht und Justiz erschienen:",
-                      image_url = "https://gitlab.com/salim-b/republik_mailer/raw/master/images/justitia-516.png",
+                      image_url = "https://gitlab.com/salim-b/republik_mailer/raw/master/images/justitia-560.jpg",
                       latest_one_only = latest_one_only)
 }
 ```
@@ -538,7 +544,7 @@ mail_am_gericht <- function(only_run_on_days = 3,
                       subject = "\U1F3DB\UFE0F Republik am Gericht",
                       intro = "Die Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):",
                       image_url = paste0("https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/",
-                                         "ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=516x"),
+                                         "ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=560x"),
                       latest_one_only = latest_one_only,
                       only_run_on_days = only_run_on_days)
 }
@@ -552,13 +558,13 @@ mail_briefing_aus_bern <- function(only_run_on_days = 4,
 {
   # define random image choices
   images <- tibble::tibble(
-    url = c("https://gitlab.com/salim-b/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundesplatz-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus2-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/water-fountain-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/museumsnacht-bundeplatz-stereographic-516.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bern-bundesplatz-516.jpg"),
+    url = c("https://gitlab.com/salim-b/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-560.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundesplatz-560.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus-560.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus2-560.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/water-fountain-560.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/museumsnacht-bundeplatz-stereographic-560.jpg",
+            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bern-bundesplatz-560.jpg"),
     credits = c(
       paste0(
         "_[Storm brewing over the Parliament](https://www.flickr.com/photos/chreegou/42317245170/)_ von Christian Scheidegger ist lizenziert unter ",
@@ -615,7 +621,7 @@ mail_preis_der_republik <- function(only_run_on_days = 4,
                       subject = "\U1F3C6 Preis der Republik",
                       intro = "Der allmonatliche [Preis der Republik](https://www.republik.ch/format/preis-der-republik) wurde soeben verliehen:",
                       image_url = paste0("https://cdn.repub.ch/s3/republik-assets/github/republik/format-preis-der-republik/images/",
-                                         "bfd51622c2e607f006779492f542bca83942a56a.jpeg?resize=516x"),
+                                         "bfd51622c2e607f006779492f542bca83942a56a.jpeg?resize=560x"),
                       latest_one_only = latest_one_only,
                       only_run_on_days = only_run_on_days)
 }
