@@ -566,47 +566,60 @@ mail_am_gericht <- function(only_run_on_days = 3,
 
 ```{r, mail-briefing-aus-bern}
 mail_briefing_aus_bern <- function(only_run_on_days = 4,
-                                   latest_one_only = TRUE)
+                                   latest_one_only = TRUE,
+                                   randomize_image = FALSE)
 {
-  # define random image choices
-  images <- tibble::tibble(
-    url = c("https://gitlab.com/salim-b/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-560.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundesplatz-560.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus-560.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus2-560.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/water-fountain-560.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/museumsnacht-bundeplatz-stereographic-560.jpg",
-            "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bern-bundesplatz-560.jpg"),
-    credits = c(
-      paste0(
-        "_[Storm brewing over the Parliament](https://www.flickr.com/photos/chreegou/42317245170/)_ von Christian Scheidegger ist lizenziert unter ",
-        "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
-      paste0(
-        "_[Bundesplatz](https://www.flickr.com/photos/schoeband/6514744179/)_ von Andreina Schoeberlein ist lizenziert unter ",
-        "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
-      paste0(
-        "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4450441204/)_ von Martin Abegglen ist lizenziert unter ",
-        "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
-      paste0(
-        "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4875386468/)_ von Martin Abegglen ist lizenziert unter ",
-        "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
-      paste0(
-        "_[Water Fountain](https://www.flickr.com/photos/glodjib/7371568978/)_ von Guido Gloor Modjib ist lizenziert unter ",
-        "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
-      paste0(
-        "_[Museumsnacht Bundeplatz Stereographic](https://www.flickr.com/photos/habi/5546211688/)_ von David Haberthür ist lizenziert unter ",
-        "[CC-BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/)"),
-      paste0(
-        "_[Bern Bundesplatz](https://www.flickr.com/photos/codeseven/3798802986/)_ von Philipp ist lizenziert unter ",
-        "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"))
-  )
-  
-  # choose an image randomly
-  random_image_choice <-
-    runif(n = 1,
-          min = 1,
-          max = nrow(images)) %>%
-    round(digits = 0)
+  if ( randomize_image )
+  {
+    # define random image choices
+    images <- tibble::tibble(
+      url = c("https://gitlab.com/salim-b/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-560.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundesplatz-560.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus-560.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus2-560.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/water-fountain-560.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/museumsnacht-bundeplatz-stereographic-560.jpg",
+              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bern-bundesplatz-560.jpg"),
+      credits = c(
+        paste0(
+          "_[Storm brewing over the Parliament](https://www.flickr.com/photos/chreegou/42317245170/)_ von Christian Scheidegger ",
+          "ist lizenziert unter [CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
+        paste0(
+          "_[Bundesplatz](https://www.flickr.com/photos/schoeband/6514744179/)_ von Andreina Schoeberlein ist lizenziert unter ",
+          "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
+        paste0(
+          "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4450441204/)_ von Martin Abegglen ist lizenziert unter ",
+          "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
+        paste0(
+          "_[Bundeshaus](https://www.flickr.com/photos/twicepix/4875386468/)_ von Martin Abegglen ist lizenziert unter ",
+          "[CC-BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)"),
+        paste0(
+          "_[Water Fountain](https://www.flickr.com/photos/glodjib/7371568978/)_ von Guido Gloor Modjib ist lizenziert unter ",
+          "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"),
+        paste0(
+          "_[Museumsnacht Bundeplatz Stereographic](https://www.flickr.com/photos/habi/5546211688/)_ von David Haberthür ist lizenziert unter ",
+          "[CC-BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/)"),
+        paste0(
+          "_[Bern Bundesplatz](https://www.flickr.com/photos/codeseven/3798802986/)_ von Philipp ist lizenziert unter ",
+          "[CC-BY-NC-ND 2.0](https://creativecommons.org/licenses/by-nc-nd/2.0/)"))
+    )
+    
+    # choose an image randomly
+    random_image_choice <-
+      runif(n = 1,
+            min = 1,
+            max = nrow(images)) %>%
+      round(digits = 0)
+    
+    image_url <- images$url[random_image_choice]
+    image_text <- images$credits[random_image_choice] %>% commonmark::markdown_text() %>% stringr::str_extract("^.+(?= von)")
+    
+  } else
+  {
+    image_url <- paste0("https://cdn.repub.ch/s3/republik-assets/github/republik/magazine/images/",
+                        "175fcbe4fcb26c0cdcb31b62d6dae351345c16be.png?resize=560x360")
+    image_text <- "Symbolbild"
+  }
   
   # spread article
   spread_new_articles(format = "briefing-aus-bern",
@@ -614,8 +627,8 @@ mail_briefing_aus_bern <- function(only_run_on_days = 4,
                       intro = paste("Das heutige [Briefing aus Bern](https://www.republik.ch/format/briefing-aus-bern) der Republik fasst",
                                     "_«das Wichtigste in Kürze aus Parlament, Regierung und Verwaltung, kurz: dem Bundeshaus»_",
                                     "der letzten 7 Tage zusammen:"),
-                      image_url = images$url[random_image_choice],
-                      image_text = images$credits[random_image_choice] %>% commonmark::markdown_text() %>% stringr::str_extract("^.+(?= von)"),
+                      image_url = image_url,
+                      image_text = image_text,
                       footer = glue::glue("{images$credits[random_image_choice]}\n\n",
                                           config$credits),
                       latest_one_only = latest_one_only,
