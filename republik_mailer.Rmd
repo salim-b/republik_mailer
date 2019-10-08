@@ -649,7 +649,7 @@ mail_preis_der_republik <- function(only_run_on_days = NULL,
                       subject = "\U1F3C6 Preis der Republik",
                       intro = "Der allmonatliche [Preis der Republik](https://www.republik.ch/format/preis-der-republik) wurde soeben verliehen:",
                       image_url = paste0("https://cdn.repub.ch/s3/republik-assets/github/republik/format-preis-der-republik/images/",
-                                         "bfd51622c2e607f006779492f542bca83942a56a.jpeg?resize=560x"),
+                                         "bfd51622c2e607f006779492f542bca83942a56a.jpeg?resize=300x"),
                       latest_one_only = latest_one_only,
                       only_run_on_days = only_run_on_days)
 }
