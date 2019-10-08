@@ -514,6 +514,9 @@ spread <- function(format,
       footer = footer) %>%
       insert_css_into_blastula() %$%
       html_str %>%
+      # change mail background color to match Ubuntu GUI
+      stringr::str_replace_all(pattern = "(?i)#f6f6f6",
+                               replacement = "#f2f1f0") %>%
       minify_html() %>%
       readr::write_file(path = "message.html")
     
