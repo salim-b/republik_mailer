@@ -58,7 +58,9 @@ knit_readme <- function()
 
 ## Get latest article metadata from specific Republik format
 
-The code below fetches the link, title and lead of the latest articles from a specific article `format`, like [Am Gericht](https://www.republik.ch/format/am-gericht) for example. You have to provide the value of the `connect.sid` cookie, either directly as argument `auth_cookie` or in the configuration file `config.toml` in the working directory (recommended).
+The code below fetches the link, title and lead of the latest articles from a specific article `format`, like
+[Am Gericht](https://www.republik.ch/format/am-gericht) for example. You have to provide the value of the `connect.sid` cookie, either directly as
+argument `auth_cookie` or in the configuration file `config.toml` in the working directory (recommended).
 
 ~~Note that the [cURL](https://curl.haxx.se/) command line tool must be available on the system.~~
 
@@ -105,8 +107,8 @@ get_latest_article_metadata <- function(format,
   #       
   #     } else
   #     {
-  #       rlang::abort(message = glue::glue("Curl repeatedly failed to fetch content from <https://www.republik.ch/format/{format}>! Last exit status code was ",
-  #                                         "{curl_status_code}!\nFor an overview of curl status codes, see ",
+  #       rlang::abort(message = glue::glue("Curl repeatedly failed to fetch content from <https://www.republik.ch/format/{format}>! ",
+  #                                         "Last exit status code was {curl_status_code}!\nFor an overview of curl status codes, see ",
   #                                         "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>."))
   #     }
   #     
@@ -302,9 +304,13 @@ insert_css_into_blastula <- function(blastula_email,
 
 **Remarks:**
 
-- These are simple wrapper functions around the CLI tool [minify](https://github.com/tdewolff/minify/tree/master/cmd/minify). Use parameter `command` to specify where its executable is found on your system (just leave it at its default `command = "minify"` if it's in the system's `$PATH`).
+- These are simple wrapper functions around the CLI tool [minify](https://github.com/tdewolff/minify/tree/master/cmd/minify).
+  Use parameter `command` to specify where its executable is found on your system (just leave it at its default `command = "minify"` if it's in the system's
+  `$PATH`).
 
-- Precompiled versions of minify can be downloaded [here](https://github.com/tdewolff/minify/releases). If you want or have to compile it yourself (e.g. for 32-bit plattforms), make sure the [Go distribution](https://golang.org/doc/install) and [Git](https://git-scm.com/downloads) are installed and run the following:
+- Precompiled versions of minify can be downloaded [here](https://github.com/tdewolff/minify/releases). If you want or have to compile it yourself
+  (e.g. for 32-bit plattforms), make sure the [Go distribution](https://golang.org/doc/install) and [Git](https://git-scm.com/downloads) are installed
+  and run the following:
 
     ```sh
     go get -u -v github.com/tdewolff/minify/cmd/minify
@@ -388,7 +394,9 @@ send_mail <- function(html_message_file,
 
 **Remarks:**
 
-- Currently the package [blastula](https://rich-iannone.github.io/blastula/) used to send e-mails is undergoing heavy changes, i.a. the underlying program used for SMTP [is being replaced](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#sending-email) by [mailsend-go](https://github.com/muquit/mailsend-go). Therefore you should use the development version installed directly from GitHub using:
+- Currently the package [blastula](https://rich-iannone.github.io/blastula/) used to send e-mails is undergoing heavy changes, i.a. the underlying program used
+  for SMTP [is being replaced](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#sending-email) by
+  [mailsend-go](https://github.com/muquit/mailsend-go). Therefore you should use the development version installed directly from GitHub using:
 
     ```r
     remotes::install_github(repo = "rich-iannone/blastula")
@@ -396,11 +404,13 @@ send_mail <- function(html_message_file,
 
 - Beforehand you should [install mailsend-go](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#installation-of-mailsend-go).
 
-    On Debian/Ubuntu Linux you also have to install the Debian package `libsodium-dev` which is required by the R package `sodium`, which in turn is a dependency of the R package `keyring`, which is finally a dependency of the `blastula` R package.
+    On Debian/Ubuntu Linux you also have to install the Debian package `libsodium-dev` which is required by the R package `sodium`, which in turn is a
+    dependency of the R package `keyring`, which is finally a dependency of the `blastula` R package.
 
 - It's recommended to store the SMTP credentials to file. See the [README](README.md#-config) for details.
 
-- It's recommended to assign the class `img-responsive` to images embedded in the mail text. Currently this _cannot_ be achieved by using Markdown (`![Alternative Text...](https://...)`). Instead you have to use plain HTML:
+- It's recommended to assign the class `img-responsive` to images embedded in the mail text. Currently this _cannot_ be achieved by using Markdown
+  (`![Alternative Text...](https://...)`). Instead you have to use plain HTML:
 
     ```html
     <img class='img-responsive' src='https://...' alt='Alternative Text...' />
