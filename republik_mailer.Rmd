@@ -19,7 +19,7 @@ library(magrittr)
 # Read in configuration
 
 ```{r, read-in-config}
-if ( file.exists("config.toml") )
+if ( fs::file_exists("config.toml") )
 {
   config <- RcppTOML::parseTOML(input = "config.toml",
                                 escape = FALSE)
@@ -31,6 +31,10 @@ if ( file.exists("config.toml") )
                  greetings = "Einen schönen Tag wünscht  \nSalims MailBot \U1F916",
                  credits = paste("Dies ist eine automatisch generierte Nachricht.",
                                  "Der zugrundeliegende Code findet sich bei Interesse [hier](https://gitlab.com/salim-b/republik_mailer)."),
+                 default_formats = c("alles-was-recht-ist",
+                                     "am-gericht",
+                                     "briefing-aus-bern",
+                                     "preis-der-republik"),
                  auth_cookie = "?")
 }
 ```
@@ -48,7 +52,7 @@ knit_readme <- function()
                      encoding = "UTF-8",
                      to = "gfm")
   
-  if ( file.exists("README.gfm") ) unlink("README.gfm")
+  if ( fs::file_exists("README.gfm") ) fs::file_delete("README.gfm")
 }
 ```
 
@@ -202,13 +206,10 @@ get_latest_article_metadata <- function(format,
 ## Update local article metadata
 
 ```{r, update-local-article-metadata}
-update_article_metadata <- function(formats = c("alles-was-recht-ist",
-                                                "am-gericht",
-                                                "briefing-aus-bern",
-                                                "preis-der-republik"))
+update_article_metadata <- function(formats = config$default_formats)
 {
   # read in existing local metadata if possible
-  if ( file.exists("article_metadata.rds") )
+  if ( fs::file_exists("article_metadata.rds") )
   {
     article_metadata <<- readRDS(file = "article_metadata.rds")
     
