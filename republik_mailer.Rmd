@@ -196,7 +196,8 @@ get_latest_article_metadata <- function(format,
                                      xpath = .x)) %>%
       purrr::map(rvest::html_text) %>%
       purrr::map(magrittr::extract, 2) %>%
-      purrr::flatten_chr(),
+      purrr::flatten_chr() %>%
+      stringr::str_trim(),
     # make links absolute
     href = paste0("https://www.republik.ch", href)
   )
