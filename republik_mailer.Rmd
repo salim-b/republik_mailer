@@ -511,7 +511,8 @@ spread <- function(format,
                        glue::glue("\n\n\n<img class=\"img-responsive\" src=\"{image_url}\" alt=\"{image_text}\" />"),
                        ""),
         "\n\n", greetings),
-      footer = footer) %>%
+      footer = footer,
+      .title = subject) %>%
       insert_css_into_blastula() %$%
       html_str %>%
       # change mail background color to match Ubuntu GUI
