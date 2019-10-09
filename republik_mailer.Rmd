@@ -515,6 +515,7 @@ spread <- function(format,
       insert_css_into_blastula() %$%
       html_str %>%
       # change mail background color to match Ubuntu GUI
+      # TODO: use param `background_color` as soon as [PR #81](https://github.com/rich-iannone/blastula/pull/82) is merged
       stringr::str_replace_all(pattern = "(?i)#f6f6f6",
                                replacement = "#f2f1f0") %>%
       minify_html() %>%
