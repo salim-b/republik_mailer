@@ -620,12 +620,13 @@ mail_briefing_aus_bern <- function(only_run_on_days = 4,
     
     image_url <- images$url[random_image_choice]
     image_text <- images$credits[random_image_choice] %>% commonmark::markdown_text() %>% stringr::str_extract("^.+(?= von)")
+    footer <- glue::glue("{images$credits[random_image_choice]}\n\n", config$credits)
     
   } else
   {
-    image_url <- paste0("https://cdn.repub.ch/s3/republik-assets/github/republik/magazine/images/",
-                        "175fcbe4fcb26c0cdcb31b62d6dae351345c16be.png?resize=560x360")
+    image_url <- "https://cdn.repub.ch/s3/republik-assets/github/republik/magazine/images/175fcbe4fcb26c0cdcb31b62d6dae351345c16be.png?resize=560x360"
     image_text <- "Symbolbild"
+    footer <- config$credits
   }
   
   # spread article
@@ -636,8 +637,7 @@ mail_briefing_aus_bern <- function(only_run_on_days = 4,
                                     "der letzten 7 Tage zusammen:"),
                       image_url = image_url,
                       image_text = image_text,
-                      footer = glue::glue("{images$credits[random_image_choice]}\n\n",
-                                          config$credits),
+                      footer = footer,
                       latest_one_only = latest_one_only,
                       only_run_on_days = only_run_on_days)
 }
