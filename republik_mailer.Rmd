@@ -238,8 +238,8 @@ update_article_metadata <- function(formats = config$default_formats)
     # sort tibble
     dplyr::arrange(format, href)
   
-  saveRDS(object = article_metadata,
-          file = "article_metadata.rds")
+  article_metadata %>%
+    readr::write_rds(path = "article_metadata.rds")
 }
 ```
 
@@ -279,8 +279,8 @@ set_mailed <- function(mailed_hrefs)
                                              TRUE,
                                              is_mailed))
   
-  saveRDS(object = article_metadata,
-          file = "article_metadata.rds")
+  article_metadata %>%
+    readr::write_rds(path = "article_metadata.rds")
 }
 ```
 
