@@ -246,12 +246,15 @@ update_article_metadata <- function(formats = config$default_formats)
 ## Get new articles' `href`s
 
 ```{r, get-new-href}
-get_new_hrefs <- function(format)
+get_new_hrefs <- function(format,
+                          latest_one_only = FALSE)
 {
   article_metadata %>%
-    dplyr::filter(format == !!format
-                  & !is_mailed) %>%
-    dplyr::arrange(href) %$%
+    dplyr::filter(format == !!format) %>%
+    dplyr::arrange(href) %>%
+    purrr::when(latest_one_only ~ dplyr::filter(.data = ., dplyr::row_number() == nrow(.)),
+                ~ .) %>%
+    dplyr::filter(!is_mailed) %$%
     href
 }
 ```
@@ -495,7 +498,8 @@ spread <- function(format,
 {
   # get hyperlinks of unmailed articles of desired format
   new_hrefs <-
-    get_new_hrefs(format = format) %>%
+    get_new_hrefs(format = format,
+                  latest_one_only = latest_one_only) %>%
     purrr::when(length(.) == 0 ~ .,
                 latest_one_only ~ dplyr::last(.),
                 ~ .)
