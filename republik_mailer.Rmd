@@ -553,11 +553,13 @@ mail_alles_was_recht_ist <- function(latest_one_only = TRUE)
 
 ### Am Gericht (only on Wednesdays)
 
-Alternatiive (old) official symbolic picture for the format _Am Gericht_ is hosted here:
-<https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=560x>
+- Usually, a new article from this format is published on every Wednesday; set `only_run_on_days = 3` to restrict the function's execution to Wednesdays.
+
+- Alternatiive (old) official symbolic picture for the format _Am Gericht_ is hosted here:
+  <https://cdn.republik.space/s3/republik-assets/github/republik/format-am-gericht/images/ab46b8bfb396500f80893b333aece0419aa536ac.png?resize=560x>
 
 ```{r, mail-am-gericht}
-mail_am_gericht <- function(only_run_on_days = 3,
+mail_am_gericht <- function(only_run_on_days = NULL,
                             latest_one_only = TRUE)
 {
   spread_new_articles(format = "am-gericht",
@@ -572,8 +574,10 @@ mail_am_gericht <- function(only_run_on_days = 3,
 
 ### Briefing aus Bern (only on Thursdays)
 
+Usually, a new article from this format is published on every Thursday; set `only_run_on_days = 4` to restrict the function's execution to Thursdays
+
 ```{r, mail-briefing-aus-bern}
-mail_briefing_aus_bern <- function(only_run_on_days = 4,
+mail_briefing_aus_bern <- function(only_run_on_days = NULL,
                                    latest_one_only = TRUE,
                                    randomize_image = FALSE)
 {
