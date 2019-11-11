@@ -87,6 +87,7 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 
 - `7-uhr-newsletter`
 - `am-gericht`
+- `am-klavier`
 - `am-wegesrand`
 - `an-die-verlagsetage`
 - `alles-was-recht-ist`
@@ -105,19 +106,23 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 - `entwicklungslabor`
 - `feuilleton-newsletter`
 - `film`
+- `format-happening`
 - `fotobuch`
 - `gedankensplitter`
 - `genossenschaftsrat`
 - `gift-und-galle`
 - `helfen-sie-mit`
 - `herd-und-hof`
+- `kiyaks-exil`
 - `klang`
 - `kunst`
 - `nahr`
 - `operation-nabucco`
+- `podcast`
 - `poesie-prosa`
 - `preis-der-republik`
 - `raumdeutung`
+- `republik-live`
 - `sehfeld`
 - `theater`
 - `theaterspektakel`
@@ -126,6 +131,7 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 - `was-kommt`
 - `welt-in-serie`
 - `wochenend-newsletter`
+- `zur-aktualitaet`
 
 Besides, the function `spread_new_articles()` expects a `subject` string, an `intro` phrase and optionally an `image_url` for an embedded symbolic picture. If you want to spread only the very latest article of the chosen format, set `latest_one_only` to `TRUE`.
 
