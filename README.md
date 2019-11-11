@@ -18,13 +18,9 @@ Send e-mails spreading recent articles from a certain format of the online newsp
 
 ## [🠅](#table-of-contents) Requirements
 
-First of all: This script doesn't allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and it's recommended to set the `auth_cookie` key in [`config.toml`](#config) to the cookie's value (a cryptographic hash)[^reveal]. Alternatively you can provide the cookie's value directly to the `auth_cookie` argument of the function `get_latest_article_metadata()`.
+First of all: This script doesn’t allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and it’s recommended to set the `auth_cookie` key in [`config.toml`](#config) to the cookie’s value (a cryptographic hash)[^1]. Alternatively you can provide the cookie’s value directly to the `auth_cookie` argument of the function `get_latest_article_metadata()`.
 
 In addition, the `from` sender address as well as the `to` receiver address and the `salutation`, `greetings` and `credits` for the e-mails being sent should be set in the [`config.toml` file](#config), which must be located in the working directory.
-
-
-[^reveal]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector).
-
 
 ## [🠅](#table-of-contents) Setup
 
@@ -32,7 +28,7 @@ In addition, the `from` sender address as well as the `to` receiver address and 
 
 To install the necessary R packages, run the following:
 
-```r
+``` r
 install.packages(pkgs = c("checkmate",
                           "fs",
                           "glue",
@@ -54,9 +50,9 @@ remotes::install_github(repo = "rich-iannone/blastula")
 
 ### [🠅](#table-of-contents) Config
 
-1. To create the necessary [TOML](https://github.com/toml-lang/toml#readme) config file, customize and run the following:
+1.  To create the necessary [TOML](https://github.com/toml-lang/toml#readme) config file, customize and run the following:
 
-    ```r
+    ``` r
     readr::write_lines(path = "config.toml",
                        x = c('from = "email@address.domain"',
                              'to = "email@address.domain"',
@@ -67,11 +63,11 @@ remotes::install_github(repo = "rich-iannone/blastula")
                              'auth_cookie = "s%..."'))
     ```
 
-2. Save your e-mail sender account credentials to file.
+2.  Save your e-mail sender account credentials to file.
 
     To use [STARTTLS](https://en.wikipedia.org/wiki/Opportunistic_TLS) (usually over port 587), [customize](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#storing-credentials-and-smtp-configuration-data-for-later-use) and run the following:
 
-    ```r
+    ``` r
     blastula::create_smtp_creds_file(file = ".smtp_credentials",
                                      user = "user@address.suffix",
                                      host = "smtp.address.suffix",
@@ -82,7 +78,7 @@ remotes::install_github(repo = "rich-iannone/blastula")
 
     Or to use [implicit SSL/TLS](https://tools.ietf.org/html/rfc8314#section-3.3) (usually over port 465), [customize](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#storing-credentials-and-smtp-configuration-data-for-later-use) and run the following:
 
-    ```r
+    ``` r
     blastula::create_smtp_creds_file(file = ".smtp_credentials",
                                      user = "user@address.suffix",
                                      host = "smtp.address.suffix",
@@ -93,53 +89,59 @@ remotes::install_github(repo = "rich-iannone/blastula")
 
 ## [🠅](#table-of-contents) Customize the script
 
-It's recommended that you adapt the script to your needs before you run it, particularly customize [the existing functions to spread new articles](republik_mailer.Rmd#spread-new-articles) or create your own ones.
+It’s recommended that you adapt the script to your needs before you run it, particularly customize [the existing functions to spread new articles](republik_mailer.Rmd#spread-new-articles) or create your own ones.
 
 The unique identifier for an article is always its hyperlink (`href`).
 
 The parameters `format` and `formats` of the functions `get_latest_article_metadata()`, `update_article_metadata()` and `spread_new_articles()` respectively can be set to any of the existing Republik formats, including:
 
-- `7-uhr-newsletter`
-- `am-gericht`
-- `am-wegesrand`
-- `an-die-verlagsetage`
-- `alles-was-recht-ist`
-- `auf-lange-sicht`
-- `aus-der-arena`
-- `aus-der-redaktion`
-- `bergs-nerds`
-- `binswanger`
-- `blattkritik`
-- `briefing-aus-bern`
-- `buchclub`
-- `ctrl-alt-r`
-- `das-leben-spielt`
-- `debatte`
-- `eidgenoessische-randnotizen`
-- `entwicklungslabor`
-- `feuilleton-newsletter`
-- `film`
-- `fotobuch`
-- `gedankensplitter`
-- `genossenschaftsrat`
-- `gift-und-galle`
-- `helfen-sie-mit`
-- `herd-und-hof`
-- `klang`
-- `kunst`
-- `nahr`
-- `operation-nabucco`
-- `poesie-prosa`
-- `preis-der-republik`
-- `raumdeutung`
-- `sehfeld`
-- `theater`
-- `theaterspektakel`
-- `theorie-praxis`
-- `was-diese-woche-wichtig-war`
-- `was-kommt`
-- `welt-in-serie`
-- `wochenend-newsletter`
+-   `7-uhr-newsletter`
+-   `am-gericht`
+-   `am-klavier`
+-   `am-wegesrand`
+-   `an-die-verlagsetage`
+-   `alles-was-recht-ist`
+-   `auf-lange-sicht`
+-   `aus-der-arena`
+-   `aus-der-redaktion`
+-   `bergs-nerds`
+-   `binswanger`
+-   `blattkritik`
+-   `briefing-aus-bern`
+-   `buchclub`
+-   `ctrl-alt-r`
+-   `das-leben-spielt`
+-   `debatte`
+-   `eidgenoessische-randnotizen`
+-   `entwicklungslabor`
+-   `feuilleton-newsletter`
+-   `film`
+-   `format-happening`
+-   `fotobuch`
+-   `gedankensplitter`
+-   `genossenschaftsrat`
+-   `gift-und-galle`
+-   `helfen-sie-mit`
+-   `herd-und-hof`
+-   `kiyaks-exil`
+-   `klang`
+-   `kunst`
+-   `nahr`
+-   `operation-nabucco`
+-   `podcast`
+-   `poesie-prosa`
+-   `preis-der-republik`
+-   `raumdeutung`
+-   `republik-live`
+-   `sehfeld`
+-   `theater`
+-   `theaterspektakel`
+-   `theorie-praxis`
+-   `was-diese-woche-wichtig-war`
+-   `was-kommt`
+-   `welt-in-serie`
+-   `wochenend-newsletter`
+-   `zur-aktualitaet`
 
 Besides, the function `spread_new_articles()` expects a `subject` string, an `intro` phrase and optionally an `image_url` for an embedded symbolic picture. If you want to spread only the very latest article of the chosen format, set `latest_one_only` to `TRUE`.
 
@@ -147,7 +149,7 @@ Besides, the function `spread_new_articles()` expects a `subject` string, an `in
 
 To run the script from a shell:
 
-```sh
+``` sh
 Rscript --vanilla \
          -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
                                        output = tempfile(), \
@@ -161,7 +163,7 @@ Rscript --vanilla \
 
 If you plan to run the script regularly, it might be worth to save the purled R script to file:
 
-```sh
+``` sh
 Rscript --vanilla \
          -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
                                        output = 'republik_mailer-GEN.R', \
@@ -172,7 +174,7 @@ Rscript --vanilla \
 
 Then you can directly run this file and save some processing time:
 
-```sh
+``` sh
 Rscript --vanilla \
         -e "source(file = 'republik_mailer-GEN.R', \
                    encoding = 'UTF-8', \
@@ -186,6 +188,8 @@ Just remember that you have to `knitr::purl()` again after applying any changes 
 
 ## [🠅](#table-of-contents) E-mail example
 
-An e-mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht/) could look like this:
+An e-mail for a new post in the Republik format [*Am Gericht*](https://www.republik.ch/format/am-gericht/) could look like this:
 
 ![](images/mail-am-gericht.png)
+
+[^1]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector).

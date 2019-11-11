@@ -44,15 +44,21 @@ if ( fs::file_exists("config.toml") )
 ## Knit `README.Rmd` to `README.md`
 
 ```{r, knit-readme}
-knit_readme <- function()
+knit_readme <- function(input = "README.Rmd",
+                        output = "README.md")
 {
-  knitr::knit2pandoc(input = "README.Rmd",
-                     output = "README.md",
-                     tangle = FALSE,
-                     encoding = "UTF-8",
-                     to = "gfm")
-  
-  if ( fs::file_exists("README.gfm") ) fs::file_delete("README.gfm")
+  # knit Rmd to md
+  knitr::knit(input = input,
+              output = output,
+              quiet = TRUE)
+
+  # convert to custom Markdown format which prettifies the Markdown and is similar enough to
+  # [GitLab Flavored Markdown](https://gitlab.com/help/user/markdown.md)
+  rmarkdown::pandoc_convert(input = output,
+                            output = output,
+                            from = "markdown+emoji",
+                            to = "markdown+emoji-simple_tables-multiline_tables-grid_tables-fenced_code_attributes-smart",
+                            options = c("--atx-headers", "--columns=9999"))
 }
 ```
 
