@@ -126,6 +126,7 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 -   `kiyaks-exil`
 -   `klang`
 -   `kunst`
+-   `lieblingsgeschichten`
 -   `nahr`
 -   `operation-nabucco`
 -   `podcast`
