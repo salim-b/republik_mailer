@@ -24,3 +24,6 @@ article_metadata.rds
 
 # HTML files (i.a. composed e-mail messages)
 *.html
+
+# subfolder for local-only files
+/gitignored/*
