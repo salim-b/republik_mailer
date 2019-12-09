@@ -48,7 +48,7 @@ remotes::install_github(repo = "rich-iannone/blastula")
                              'to = "email@address.domain"',
                              'salutation = "Ladies and gentleman"',
                              'greetings = "Einen schönen Tag wünscht  \\nSalims MailBot \U1F916"',
-                             'credits = "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse [hier](https://gitlab.com/salim-b/republik_mailer)."',
+                             'credits = "Dies ist eine automatisch generierte Nachricht. Der zugrundeliegende Code findet sich bei Interesse [hier](https://gitlab.com/salim_b/r/scripts/republik_mailer/)."',
                              'default_formats = [ "alles-was-recht-ist", "am-gericht", "briefing-aus-bern", "preis-der-republik" ]',
                              'auth_cookie = "s%..."'))
     ```

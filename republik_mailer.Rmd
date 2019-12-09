@@ -30,7 +30,7 @@ if ( fs::file_exists("config.toml") )
                  salutation = "Ladies and gentleman",
                  greetings = "Einen schönen Tag wünscht  \nSalims MailBot \U1F916",
                  credits = paste("Dies ist eine automatisch generierte Nachricht.",
-                                 "Der zugrundeliegende Code findet sich bei Interesse [hier](https://gitlab.com/salim-b/republik_mailer)."),
+                                 "Der zugrundeliegende Code findet sich bei Interesse [hier](https://gitlab.com/salim_b/r/scripts/republik_mailer/)."),
                  default_formats = c("alles-was-recht-ist",
                                      "am-gericht",
                                      "briefing-aus-bern",
@@ -556,7 +556,7 @@ mail_alles_was_recht_ist <- function(latest_one_only = TRUE)
   spread_new_articles(format = "alles-was-recht-ist",
                       subject = "\U2696\UFE0F Alles, was Recht ist in der Republik",
                       intro = "Heute ist ein neuer Beitrag in der Republik zu Recht und Justiz erschienen:",
-                      image_url = "https://gitlab.com/salim-b/republik_mailer/raw/master/images/justitia-560.jpg",
+                      image_url = "https://gitlab.com/salim_b/r/scripts/republik_mailer/raw/master/images/justitia-560.jpg",
                       latest_one_only = latest_one_only)
 }
 ```
@@ -595,13 +595,13 @@ mail_briefing_aus_bern <- function(only_run_on_days = NULL,
   {
     # define random image choices
     images <- tibble::tibble(
-      url = c("https://gitlab.com/salim-b/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-560.jpg",
-              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundesplatz-560.jpg",
-              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus-560.jpg",
-              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bundeshaus2-560.jpg",
-              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/water-fountain-560.jpg",
-              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/museumsnacht-bundeplatz-stereographic-560.jpg",
-              "https://gitlab.com/salim-b/republik_mailer/raw/master/images/bern-bundesplatz-560.jpg"),
+      url = c("https://gitlab.com/salim_b/r/scripts/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-560.jpg",
+              "https://gitlab.com/salim_b/r/scripts/republik_mailer/raw/master/images/bundesplatz-560.jpg",
+              "https://gitlab.com/salim_b/r/scripts/republik_mailer/raw/master/images/bundeshaus-560.jpg",
+              "https://gitlab.com/salim_b/r/scripts/republik_mailer/raw/master/images/bundeshaus2-560.jpg",
+              "https://gitlab.com/salim_b/r/scripts/republik_mailer/raw/master/images/water-fountain-560.jpg",
+              "https://gitlab.com/salim_b/r/scripts/republik_mailer/raw/master/images/museumsnacht-bundeplatz-stereographic-560.jpg",
+              "https://gitlab.com/salim_b/r/scripts/republik_mailer/raw/master/images/bern-bundesplatz-560.jpg"),
       credits = c(
         paste0(
           "_[Storm brewing over the Parliament](https://www.flickr.com/photos/chreegou/42317245170/)_ von Christian Scheidegger ",
