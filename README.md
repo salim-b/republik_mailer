@@ -107,11 +107,13 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 -   `bergs-nerds`
 -   `binswanger`
 -   `blattkritik`
+-   `bookmark`
 -   `briefing-aus-bern`
 -   `buchclub`
 -   `ctrl-alt-r`
 -   `das-leben-spielt`
 -   `debatte`
+-   `echo`
 -   `eidgenoessische-randnotizen`
 -   `entwicklungslabor`
 -   `feuilleton-newsletter`
@@ -138,6 +140,7 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 -   `theater`
 -   `theaterspektakel`
 -   `theorie-praxis`
+-   `update`
 -   `was-diese-woche-wichtig-war`
 -   `was-kommt`
 -   `welt-in-serie`
