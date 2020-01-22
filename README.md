@@ -18,9 +18,9 @@ Send e-mails spreading recent articles from a certain format of the online newsp
 
 ## [🠅](#table-of-contents) Requirements
 
-First of all: This script doesn’t allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and it’s recommended to set the `auth_cookie` key in [`config.toml`](#config) to the cookie’s value (a cryptographic hash)[^1]. Alternatively you can provide the cookie’s value directly to the `auth_cookie` argument of the function `get_latest_article_metadata()`.
+First of all: This script doesn’t allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and it’s recommended to set the `auth_cookie` key in [`config.toml`](#-config) to the cookie’s value (a cryptographic hash)[^1]. Alternatively you can provide the cookie’s value directly to the `auth_cookie` argument of the function `get_latest_article_metadata()`.
 
-In addition, the `from` sender address as well as the `to` receiver address and the `salutation`, `greetings` and `credits` for the e-mails being sent should be set in the [`config.toml` file](#config), which must be located in the working directory.
+In addition, the `from` sender address as well as the `to` receiver address and the `salutation`, `greetings` and `credits` for the e-mails being sent should be set in the [`config.toml` file](#-config), which must be located in the working directory.
 
 ## [🠅](#table-of-contents) Setup
 
