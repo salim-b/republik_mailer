@@ -192,7 +192,8 @@ get_latest_article_metadata <- function(format,
                    title =
                      response %>%
                      rvest::html_node(css = "h1") %>%
-                     rvest::html_text())
+                     rvest::html_text() %>%
+                     stringr::str_trim())
   
   articles %<>% dplyr::mutate(
     # add article leads
