@@ -91,7 +91,7 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 - `am-wegesrand`
 - `an-die-verlagsetage`
 - `ansichten-aus-afrika`
-- `alles-was-recht-ist`
+- `alles-was-recht-ist` -> merged into `zur-aktualitaet`
 - `auf-lange-sicht`
 - `aus-der-arena`
 - `aus-der-redaktion`
