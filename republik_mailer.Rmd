@@ -19,12 +19,12 @@ library(magrittr)
 # Read in configuration
 
 ```{r, read-in-config}
-if ( fs::file_exists("config.toml") )
-{
+if (fs::file_exists("config.toml")) {
+  
   config <- RcppTOML::parseTOML(input = "config.toml",
                                 escape = FALSE)
-} else
-{
+} else {
+  
   config <- list(from = "your.mail@address.suffix",
                  to = "your.mail@address.suffix",
                  salutation = "Ladies and gentleman",
@@ -45,8 +45,7 @@ if ( fs::file_exists("config.toml") )
 
 ```{r, knit-readme}
 knit_readme <- function(input = "README.Rmd",
-                        output = "README.md")
-{
+                        output = "README.md") {
   # knit Rmd to md
   knitr::knit(input = input,
               output = output,
@@ -68,81 +67,77 @@ The code below fetches the link, title and lead of the latest articles from a sp
 [Am Gericht](https://www.republik.ch/format/am-gericht) for example. You have to provide the value of the `connect.sid` cookie, either directly as
 argument `auth_cookie` or in the configuration file `config.toml` in the working directory (recommended).
 
-~~Note that the [cURL](https://curl.haxx.se/) command line tool must be available on the system.~~
+An alternative way to fetch the HTML using the external curl CLI would look like[^curl-syscmd]:
+
+```r
+do_repeat <- TRUE
+counter <- 1L
+
+while(do_repeat) {
+
+  # get HTML
+  article_divs <-
+    rlang::with_handlers(error = ~ rlang::abort(message = glue::glue("Can't fetch content from <https://www.republik.ch/format/{format}>!"),
+                                                parent = .),
+                         system2(command = "curl",
+                                 args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
+                                 stdout = TRUE,
+                                 stderr = TRUE))
+
+  curl_status_code <- attr(x = article_divs,
+                           which = "status")
+
+  # ensure curl exited with status `0` (success), otherwise try again 1 minute later
+  if (!is.null(curl_status_code)) {
+  
+    if (counter < 10L) {
+    
+      rlang::warn(message = glue::glue("Curl failed to fetch content from <https://www.republik.ch/format/{format}> with exit status code ",
+                                       "{curl_status_code}!\n For an overview of curl exit status codes, see ",
+                                       "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>.\n\nTrying again in 1 minute ..."))
+
+      counter %<>% magrittr::add(1L)
+      Sys.sleep(time = 60)
+
+    } else {
+    
+      rlang::abort(message = glue::glue("Curl repeatedly failed to fetch content from <https://www.republik.ch/format/{format}>! ",
+                                        "Last exit status code was {curl_status_code}!\nFor an overview of curl status codes, see ",
+                                        "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>."))
+    }
+
+  } else do_repeat <- FALSE
+}
+```
+
+[^curl-syscmd]: Note that the [cURL](https://curl.haxx.se/) command line tool must be available on the system for this to work.
 
 ```{r, get-latest-article-metadata}
 get_latest_article_metadata <- function(format,
-                                        auth_cookie = config$auth_cookie)
-{
+                                        auth_cookie = config$auth_cookie) {
+  
   # URL-decode `auth_cookie` if necessary
-  if ( !stringr::str_detect(string = auth_cookie,
-                            pattern = ":") )
-  {
+  if (!stringr::str_detect(string = auth_cookie,
+                           pattern = ":")) {
+    
     auth_cookie %<>% xml2::url_unescape()
   }
-  
-  # COMMENTED OUT alternative way to fetch HTML using external curl CLI
-  # do_repeat <- TRUE
-  # counter <- 1L
-  # 
-  # while( do_repeat )
-  # {
-  #   # get HTML
-  #   article_divs <-
-  #     rlang::with_handlers(error = ~ rlang::abort(message = glue::glue("Can't fetch content from <https://www.republik.ch/format/{format}>!"),
-  #                                                 parent = .),
-  #                          system2(command = "curl",
-  #                                  args = glue::glue("-v --cookie 'connect.sid={auth_cookie}' https://www.republik.ch/format/{format}"),
-  #                                  stdout = TRUE,
-  #                                  stderr = TRUE))
-  #   
-  #   curl_status_code <- attr(x = article_divs,
-  #                            which = "status")
-  #   
-  #   # ensure curl exited with status `0` (success), otherwise try again 1 minute later
-  #   if ( !is.null(curl_status_code) )
-  #   {
-  #     if ( counter < 10L )
-  #     {
-  #       rlang::warn(message = glue::glue("Curl failed to fetch content from <https://www.republik.ch/format/{format}> with exit status code ",
-  #                                        "{curl_status_code}!\n For an overview of curl exit status codes, see ",
-  #                                        "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>.\n\nTrying again in 1 minute ..."))
-  #       
-  #       counter %<>% magrittr::add(1L)
-  #       Sys.sleep(time = 60)
-  #       
-  #     } else
-  #     {
-  #       rlang::abort(message = glue::glue("Curl repeatedly failed to fetch content from <https://www.republik.ch/format/{format}>! ",
-  #                                         "Last exit status code was {curl_status_code}!\nFor an overview of curl status codes, see ",
-  #                                         "<https://curl.haxx.se/libcurl/c/libcurl-errors.html>."))
-  #     }
-  #     
-  #   } else do_repeat <- FALSE
-  # }
-  # 
-  # # extract relevant parts of HTML (aka "scraping")
-  # response %<>%
-  #   stringr::str_subset(pattern = "<body") %>%
-  #   xml2::read_html() %>%
-  #   # extract all <div> nodes that directly contain a <h1> node
-  #   rvest::html_nodes(xpath = "//div[h1]")
   
   # fetch HTML (retry 10 times in increasing intervals in case of any error)
   ## initialize retry counter
   retry_counter <- 1L
   
   ## define custom error handler
-  optimistic_error_handler <- function(error)
-  {
-    if ( retry_counter < 10 )
-    {
+  optimistic_error_handler <- function(error) {
+    
+    if (retry_counter < 10L) {
+      
       retry_counter <<- retry_counter + 1L
-      Sys.sleep(time = 10 * retry_counter)
+      Sys.sleep(time = 10L * retry_counter)
       fetch_html()
       
-    } else
-    {
+    } else {
+      
       rlang::abort(message = glue::glue("Repeatedly failed to fetch content from <https://www.republik.ch/format/{format}>!"),
                    parent = error)
     }
@@ -162,11 +157,12 @@ get_latest_article_metadata <- function(format,
   response <- fetch_html()
   
   # test if authentication was successful
-  if ( response %>%
-       httr::content(as = "text") %>%
-       stringr::str_detect(pattern = "Sie brauchen eine Mitgliedschaft, um die Beiträge zu lesen.") )
-  {
-    stop("Authentication failed which means the provided `auth_cookie` value is either wrong or expired! `auth_cookie` was set to:\n", auth_cookie)
+  if (response %>%
+      httr::content(as = "text") %>%
+      stringr::str_detect(pattern = "Sie brauchen eine Mitgliedschaft, um die Beiträge zu lesen.")) {
+    
+    rlang::abort(glue::glue("Authentication failed which means the provided `auth_cookie` value is either wrong or expired! ",
+                            "`auth_cookie` was set to: {auth_cookie}"))
   }
   
   # extract relevant parts of HTML (aka "scraping")
@@ -177,61 +173,54 @@ get_latest_article_metadata <- function(format,
     rvest::html_nodes(xpath = "//div[h1]")
   
   # ensure we actually got something
-  if ( length(response) == 0 )
-  {
+  if (length(response) == 0L) {
+    
     rlang::abort("No articles could be scraped! Maybe your `auth_cookie` is invalid?")
   }
   
-  # extract article links and titles
-  articles <-
-    tibble::tibble(format =
-                     format,
-                   href =
-                     response %>%
-                     rvest::html_node(css = "h1") %>%
-                     rvest::html_node(css = "a") %>%
-                     rvest::html_attr(name = "href"),
-                   title =
-                     response %>%
-                     rvest::html_node(css = "h1") %>%
-                     rvest::html_text() %>%
-                     stringr::str_trim())
-  
-  articles %<>% dplyr::mutate(
-    # add article leads
-    lead =
-      glue::glue("//a[@href='{articles$href}']") %>%
-      purrr::map(~ rvest::html_nodes(x = response,
-                                     xpath = .x)) %>%
-      purrr::map(rvest::html_text) %>%
-      purrr::map(magrittr::extract, 2) %>%
-      purrr::flatten_chr() %>%
-      stringr::str_trim(),
-    # make links absolute
-    href = paste0("https://www.republik.ch", href)
-  )
-  
-  articles
+  # extract article URLs, titles and lead
+  tibble::tibble(format =
+                   format,
+                 href =
+                   response %>%
+                   rvest::html_node(css = "h1") %>%
+                   rvest::html_node(css = "a") %>%
+                   rvest::html_attr(name = "href"),
+                 title =
+                   response %>%
+                   rvest::html_node(css = "h1") %>%
+                   rvest::html_text() %>%
+                   stringr::str_trim(),
+                 lead =
+                    glue::glue("//a[@href='{href}']") %>%
+                    purrr::map(~ rvest::html_nodes(x = response,
+                                                   xpath = .x)) %>%
+                    purrr::map(rvest::html_text) %>%
+                    purrr::map(magrittr::extract, 2L) %>%
+                    purrr::flatten_chr() %>%
+                    stringr::str_trim()) %>%
+    # finally make links absolute
+    dplyr::mutate(href = paste0("https://www.republik.ch", href))
 }
 ```
 
 ## Update local article metadata
 
 ```{r, update-local-article-metadata}
-update_article_metadata <- function(formats = config$default_formats)
-{
+update_article_metadata <- function(formats = config$default_formats) {
+  
   # read in existing local metadata if possible
-  if ( fs::file_exists("article_metadata.rds") )
-  {
+  if (fs::file_exists("article_metadata.rds")) {
+    
     article_metadata <<- readRDS(file = "article_metadata.rds")
     
-  } else
-  {
-    article_metadata <<- tibble::tibble(format = character(0),
-                                        href = character(0),
-                                        title = character(0),
-                                        lead = character(0),
-                                        is_mailed = logical(0))
+  } else {
+    
+    article_metadata <<- tibble::tibble(format = character(),
+                                        href = character(),
+                                        title = character(),
+                                        lead = character(),
+                                        is_mailed = logical())
   }
   
   # update metadata
@@ -247,8 +236,7 @@ update_article_metadata <- function(formats = config$default_formats)
     # sort tibble
     dplyr::arrange(format, href)
   
-  article_metadata %>%
-    readr::write_rds(path = "article_metadata.rds")
+  article_metadata %>% readr::write_rds(path = "article_metadata.rds")
 }
 ```
 
@@ -256,8 +244,8 @@ update_article_metadata <- function(formats = config$default_formats)
 
 ```{r, get-new-href}
 get_new_hrefs <- function(format,
-                          latest_one_only = FALSE)
-{
+                          latest_one_only = FALSE) {
+  
   article_metadata %>%
     dplyr::filter(format == !!format) %>%
     dplyr::arrange(href) %>%
@@ -271,8 +259,8 @@ get_new_hrefs <- function(format,
 ## Compose new articles
 
 ```{r, compose-new-articles}
-compose_new_articles <- function(hrefs)
-{
+compose_new_articles <- function(hrefs) {
+  
   article_metadata %>%
     dplyr::filter(href %in% hrefs) %>%
     dplyr::arrange(href) %$%
@@ -283,8 +271,8 @@ compose_new_articles <- function(hrefs)
 ## Set `is_mailed`
 
 ```{r, set-mailed}
-set_mailed <- function(mailed_hrefs)
-{
+set_mailed <- function(mailed_hrefs) {
+  
   article_metadata <<-
     article_metadata %>%
     dplyr::mutate(is_mailed = dplyr::if_else(href %in% mailed_hrefs,
@@ -300,8 +288,8 @@ set_mailed <- function(mailed_hrefs)
 
 ```{r, insert-css-into-blastula}
 insert_css_into_blastula <- function(blastula_email,
-                                     css = "div.footer a {\n      color: #999999;\n    }")
-{
+                                     css = "div.footer a {\n      color: #999999;\n    }") {
+  
   blastula_email$html_str %<>% stringr::str_replace(pattern = "(\\n +)(</style>)",
                                                     replacement = glue::glue("\\1{css}\\1\\2"))
   
@@ -333,8 +321,8 @@ insert_css_into_blastula <- function(blastula_email,
 
 ```{r, minify-html}
 minify_html <- function(html,
-                        command = "minify")
-{
+                        command = "minify") {
+  
   rlang::with_handlers(error = ~ rlang::abort(message = "HTML minification failed!",
                                               parent = .),
                        system2(command = fs::path_expand(command),
@@ -347,12 +335,12 @@ minify_html <- function(html,
 
 ```{r, minify-html-file}
 minify_html_file <- function(filepath,
-                             command = "minify")
-{
+                             command = "minify") {
+  
   filepath %>%
     fs::path_abs() %>%
     shQuote(type = "sh") %>%
-    rep(times = 2) %>%
+    rep(times = 2L) %>%
     paste0(collapse = " ") %>%
     paste("-o", .) %>%
     system2(command = fs::path_expand(command),
@@ -382,8 +370,8 @@ send_mail <- function(html_message_file,
                       from,
                       creds_file,
                       mailsend_cmd = "mailsend-go",
-                      quiet = TRUE)
-{
+                      quiet = TRUE) {
+  
   creds <- blastula::creds_file(file = creds_file)
   
   system2(command = mailsend_cmd,
@@ -441,30 +429,30 @@ spread_new_articles <- function(format,
                                 image_text = "Symbolbild",
                                 footer = config$credits,
                                 latest_one_only = FALSE,
-                                only_run_on_days = NULL)
-{
-  if ( !is.null(only_run_on_days) )
-  {
-    type_check <- only_run_on_days %>% purrr::map(.f = checkmate::check_int,
-                                                  lower = 1,
-                                                  upper = 7)
+                                only_run_on_days = NULL) {
+  
+  if (!is.null(only_run_on_days)) {
     
-    if ( type_check %>%
-         purrr::map_depth(.depth = 1,
-                          .f = purrr::is_logical) %>%
-         as.logical() %>%
-         all() %>%
-         not() )
-    {
-      stop(paste0("`only_run_on_days` must be an numeric vector containing weekday numbers between 1 and 7 (1 = monday, ... , 7 = sunday)!\n",
-                  type_check %>% purrr::keep(.p = is.character) %>% purrr::flatten_chr() %>% paste0(collapse = "\n")))
+    type_check <- only_run_on_days %>% purrr::map(.f = checkmate::check_int,
+                                                  lower = 1L,
+                                                  upper = 7L)
+    
+    if (type_check %>%
+        purrr::map_depth(.depth = 1L,
+                         .f = purrr::is_logical) %>%
+        as.logical() %>%
+        all() %>%
+        not()) {
+      
+      rlang::abort(paste0("`only_run_on_days` must be an numeric vector containing weekday numbers between 1 and 7 (1 = monday, ... , 7 = sunday)!\n",
+                          type_check %>% purrr::keep(.p = is.character) %>% purrr::flatten_chr() %>% paste0(collapse = "\n")))
     }
     
-    if ( Sys.Date() %>%
-         lubridate::wday(week_start = 1) %>%
-         magrittr::equals(only_run_on_days) %>%
-         any() )
-    {
+    if (Sys.Date() %>%
+        lubridate::wday(week_start = 1L) %>%
+        magrittr::equals(only_run_on_days) %>%
+        any()) {
+      
       spread(format = format,
              subject = subject,
              intro = intro,
@@ -477,8 +465,8 @@ spread_new_articles <- function(format,
              footer = footer,
              latest_one_only = latest_one_only)
     }
-  } else
-  {
+  } else {
+    
     spread(format = format,
            subject = subject,
            intro = intro,
@@ -503,18 +491,18 @@ spread <- function(format,
                    image_url,
                    image_text,
                    footer,
-                   latest_one_only)
-{
+                   latest_one_only) {
+    
   # get hyperlinks of unmailed articles of desired format
   new_hrefs <-
     get_new_hrefs(format = format,
                   latest_one_only = latest_one_only) %>%
-    purrr::when(length(.) == 0 ~ .,
+    purrr::when(length(.) == 0L ~ .,
                 latest_one_only ~ dplyr::last(.),
                 ~ .)
   
-  if ( length(new_hrefs) > 0 )
-  {
+  if (length(new_hrefs)) {
+    
     # compose mail
     blastula::compose_email(
       body = paste0(
@@ -554,8 +542,8 @@ spread <- function(format,
 ### Alles was Recht ist
 
 ```{r, mail-alles-was-recht-ist}
-mail_alles_was_recht_ist <- function(latest_one_only = TRUE)
-{
+mail_alles_was_recht_ist <- function(latest_one_only = TRUE) {
+  
   spread_new_articles(format = "alles-was-recht-ist",
                       subject = "\U2696\UFE0F Alles, was Recht ist in der Republik",
                       intro = "Heute ist ein neuer Beitrag in der Republik zu Recht und Justiz erschienen:",
@@ -573,8 +561,8 @@ mail_alles_was_recht_ist <- function(latest_one_only = TRUE)
 
 ```{r, mail-am-gericht}
 mail_am_gericht <- function(only_run_on_days = NULL,
-                            latest_one_only = TRUE)
-{
+                            latest_one_only = TRUE) {
+  
   spread_new_articles(format = "am-gericht",
                       subject = "\U1F3DB\UFE0F Republik am Gericht",
                       intro = "Die Republik war wieder [am Gericht](https://www.republik.ch/format/am-gericht):",
@@ -592,10 +580,10 @@ Usually, a new article from this format is published on every Thursday; set `onl
 ```{r, mail-briefing-aus-bern}
 mail_briefing_aus_bern <- function(only_run_on_days = NULL,
                                    latest_one_only = TRUE,
-                                   randomize_image = FALSE)
-{
-  if ( randomize_image )
-  {
+                                   randomize_image = FALSE) {
+  
+  if (randomize_image) {
+    
     # define random image choices
     images <- tibble::tibble(
       url = c("https://gitlab.com/salim_b/r/scripts/republik_mailer/raw/master/images/storm-brewing-over-the-parliament-560.jpg",
@@ -631,17 +619,17 @@ mail_briefing_aus_bern <- function(only_run_on_days = NULL,
     
     # choose an image randomly
     random_image_choice <-
-      runif(n = 1,
-            min = 1,
+      runif(n = 1L,
+            min = 1L,
             max = nrow(images)) %>%
-      round(digits = 0)
+      round(digits = 0L)
     
     image_url <- images$url[random_image_choice]
     image_text <- images$credits[random_image_choice] %>% commonmark::markdown_text() %>% stringr::str_extract("^.+(?= von)")
     footer <- glue::glue("{images$credits[random_image_choice]}\n\n", config$credits)
     
-  } else
-  {
+  } else {
+    
     image_url <- "https://cdn.repub.ch/s3/republik-assets/github/republik/magazine/images/175fcbe4fcb26c0cdcb31b62d6dae351345c16be.png?resize=560x360"
     image_text <- "Symbolbild"
     footer <- config$credits
@@ -665,8 +653,8 @@ mail_briefing_aus_bern <- function(only_run_on_days = NULL,
 
 ```{r, mail-preis-der-republik}
 mail_preis_der_republik <- function(only_run_on_days = NULL,
-                                    latest_one_only = TRUE)
-{
+                                    latest_one_only = TRUE) {
+  
   spread_new_articles(format = "preis-der-republik",
                       subject = "\U1F3C6 Preis der Republik",
                       intro = "Der allmonatliche [Preis der Republik](https://www.republik.ch/format/preis-der-republik) wurde soeben verliehen:",
@@ -682,10 +670,10 @@ mail_preis_der_republik <- function(only_run_on_days = NULL,
 This is a very basic loop function intended to run the functions to spread new articles for an indefinite amount of time. Probably not what you want! 😉
 
 ```{r, loop}
-loop <- function()
-{
-  while( TRUE )
-  {
+loop <- function() {
+  
+  while(TRUE) {
+    
     # sleep until 6 in the morning
     lubridate::as_datetime(x = paste(Sys.Date() + ifelse(lubridate::hour(lubridate::as_datetime(Sys.time(),
                                                                                                 tz = "Europe/Zurich")) < 6L,
