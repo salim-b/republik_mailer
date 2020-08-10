@@ -149,10 +149,12 @@ get_latest_article_metadata <- function(format,
   }
   
   ## define function to fetch HTML deploying above error handler
-  fetch_html <- function()
-  {
-    rlang::with_handlers(httr::GET(url = glue::glue("https://www.republik.ch/format/{format}"),
-                                   httr::set_cookies(`connect.sid` = auth_cookie)),
+  fetch_html <- function() {
+    
+    rlang::with_handlers(httr::RETRY(verb = "GET",
+                                     url = glue::glue("https://www.republik.ch/format/{format}"),
+                                     httr::set_cookies(`connect.sid` = auth_cookie),
+                                     times = 5L),
                          error = optimistic_error_handler)
   }
   
