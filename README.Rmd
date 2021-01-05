@@ -1,16 +1,25 @@
+---
+output: pal::gitlab_document
+---
+
 # Republik Mailer
 
 Send e-mails spreading recent articles from a certain format of the online newspaper [Republik](https://www.republik.ch/).
 
 ## Requirements
 
-First of all: This script doesn't allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created needed for authentication. This cookie is named `connect.sid` and it's recommended to set the `auth_cookie` key in [`config.toml`](#-config) to the cookie's value (a cryptographic hash)[^reveal]. Alternatively you can provide the cookie's value directly to the `auth_cookie` argument of the function `get_latest_article_metadata()`.
+First of all: This script doesn't allow any unauthenticated access to the online newspaper. You have to be a (paying) [subscriber of
+Republik](https://www.republik.ch/angebote). This allows you to [log in to the site](https://www.republik.ch/anmelden) in order to have a session cookie created
+needed for authentication. This cookie is named `connect.sid` and it's recommended to set the `auth_cookie` key in [`config.toml`](#-config) to the cookie's
+value (a cryptographic hash)[^1]. Alternatively you can provide the cookie's value directly to the `auth_cookie` argument of the function
+`get_latest_article_metadata()`.
 
-In addition, the `from` sender address as well as the `to` receiver address and the `salutation`, `greetings` and `credits` for the e-mails being sent should be set in the [`config.toml` file](#-config), which must be located in the working directory.
+In addition, the `from` sender address as well as the `to` receiver address and the `salutation`, `greetings` and `credits` for the e-mails being sent should be
+set in the [`config.toml` file](#-config), which must be located in the working directory.
 
-
-[^reveal]: How you access the locally stored cookies of a specific site in Google Chrome is described [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector).
-
+[^1]: How you access the locally stored cookies of a specific site in Google Chrome is described
+    [here](https://developers.google.com/web/tools/chrome-devtools/storage/cookies), the same for Firefox
+    [here](https://developer.mozilla.org/docs/Tools/Storage_Inspector).
 
 ## Setup
 
@@ -18,7 +27,7 @@ In addition, the `from` sender address as well as the `to` receiver address and 
 
 To install the necessary R packages, run the following:
 
-```r
+``` {.r}
 install.packages(pkgs = c("checkmate",
                           "fs",
                           "glue",
@@ -40,9 +49,9 @@ remotes::install_github(repo = "rich-iannone/blastula")
 
 ### Config
 
-1. To create the necessary [TOML](https://github.com/toml-lang/toml#readme) config file, customize and run the following:
+1.  To create the necessary [TOML](https://github.com/toml-lang/toml#readme) config file, customize and run the following:
 
-    ```r
+    ``` {.r}
     readr::write_lines(path = "config.toml",
                        x = c('from = "email@address.domain"',
                              'to = "email@address.domain"',
@@ -53,11 +62,13 @@ remotes::install_github(repo = "rich-iannone/blastula")
                              'auth_cookie = "s%..."'))
     ```
 
-2. Save your e-mail sender account credentials to file.
+2.  Save your e-mail sender account credentials to file.
 
-    To use [STARTTLS](https://en.wikipedia.org/wiki/Opportunistic_TLS) (usually over port 587), [customize](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#storing-credentials-and-smtp-configuration-data-for-later-use) and run the following:
+    To use [STARTTLS](https://en.wikipedia.org/wiki/Opportunistic_TLS) (usually over port 587),
+    [customize](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#storing-credentials-and-smtp-configuration-data-for-later-use) and run
+    the following:
 
-    ```r
+    ``` {.r}
     blastula::create_smtp_creds_file(file = ".smtp_credentials",
                                      user = "user@address.suffix",
                                      host = "smtp.address.suffix",
@@ -66,9 +77,11 @@ remotes::install_github(repo = "rich-iannone/blastula")
                                      sender_name = "Your Name (\U1F916)")
     ```
 
-    Or to use [implicit SSL/TLS](https://tools.ietf.org/html/rfc8314#section-3.3) (usually over port 465), [customize](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#storing-credentials-and-smtp-configuration-data-for-later-use) and run the following:
+    Or to use [implicit SSL/TLS](https://tools.ietf.org/html/rfc8314#section-3.3) (usually over port 465),
+    [customize](https://rich-iannone.github.io/blastula/articles/sending_using_smtp.html#storing-credentials-and-smtp-configuration-data-for-later-use) and run
+    the following:
 
-    ```r
+    ``` {.r}
     blastula::create_smtp_creds_file(file = ".smtp_credentials",
                                      user = "user@address.suffix",
                                      host = "smtp.address.suffix",
@@ -79,81 +92,84 @@ remotes::install_github(repo = "rich-iannone/blastula")
 
 ## Customize the script
 
-It's recommended that you adapt the script to your needs before you run it, particularly customize [the existing functions to spread new articles](republik_mailer.Rmd#spread-new-articles) or create your own ones.
+It's recommended that you adapt the script to your needs before you run it, particularly customize [the existing functions to spread new
+articles](republik_mailer.Rmd#spread-new-articles) or create your own ones.
 
 The unique identifier for an article is always its hyperlink (`href`).
 
-The parameters `format` and `formats` of the functions `get_latest_article_metadata()`, `update_article_metadata()` and `spread_new_articles()` respectively can be set to any of the existing Republik formats, including:
+The parameters `format` and `formats` of the functions `get_latest_article_metadata()`, `update_article_metadata()` and `spread_new_articles()` respectively can
+be set to any of the existing Republik formats, including:
 
-- `7-uhr-newsletter`
-- `am-gericht`
-- `am-klavier`
-- `am-wegesrand`
-- `an-die-verlagsetage`
-- `ansichten-aus-afrika`
-- `alles-was-recht-ist` -> merged into `zur-aktualitaet`
-- `auf-lange-sicht`
-- `aus-der-arena`
-- `aus-der-redaktion`
-- `bergs-nerds`
-- `binswanger`
-- `blattkritik`
-- `bookmark`
-- `briefing-aus-bern`
-- `buchclub`
-- `covid-19-uhr-newsletter`
-- `ctrl-alt-r`
-- `das-leben-spielt`
-- `debatte`
-- `der-der-du-niemals-sein-wirst`
-- `echo`
-- `eidgenoessische-randnotizen`
-- `entwicklungslabor`
-- `feuilleton-newsletter`
-- `film`
-- `format-happening`
-- `fotobuch`
-- `fuenfmal-beethoven`
-- `gedankensplitter`
-- `genossenschaftsrat`
-- `gift-und-galle`
-- `helfen-sie-mit`
-- `herd-und-hof`
-- `kiyaks-exil`
-- `klang`
-- `kunst`
-- `lieblingsgeschichten`
-- `nahr`
-- `operation-nabucco`
-- `podcast`
-- `poesie-prosa`
-- `preis-der-republik`
-- `project-r-newsletter`
-- `raumdeutung`
-- `republik-live`
-- `salon-der-republik`
-- `sehfeld`
-- `strassberg`
-- `tech-podcast`
-- `theater`
-- `theaterspektakel`
-- `theorie-praxis`
-- `update`
-- `was-diese-woche-wichtig-war`
-- `was-kommt`
-- `watchblog`
-- `welt-in-serie`
-- `wochenend-newsletter`
-- `wochenrevue`
-- `zur-aktualitaet`
+-   `7-uhr-newsletter`
+-   `am-gericht`
+-   `am-klavier`
+-   `am-wegesrand`
+-   `an-die-verlagsetage`
+-   `ansichten-aus-afrika`
+-   `alles-was-recht-ist` -\> merged into `zur-aktualitaet`
+-   `auf-lange-sicht`
+-   `aus-der-arena`
+-   `aus-der-redaktion`
+-   `bergs-nerds`
+-   `binswanger`
+-   `blattkritik`
+-   `bookmark`
+-   `briefing-aus-bern`
+-   `buchclub`
+-   `covid-19-uhr-newsletter`
+-   `ctrl-alt-r`
+-   `das-leben-spielt`
+-   `debatte`
+-   `der-der-du-niemals-sein-wirst`
+-   `echo`
+-   `eidgenoessische-randnotizen`
+-   `entwicklungslabor`
+-   `feuilleton-newsletter`
+-   `film`
+-   `format-happening`
+-   `fotobuch`
+-   `fuenfmal-beethoven`
+-   `gedankensplitter`
+-   `genossenschaftsrat`
+-   `gift-und-galle`
+-   `helfen-sie-mit`
+-   `herd-und-hof`
+-   `kiyaks-exil`
+-   `klang`
+-   `kunst`
+-   `lieblingsgeschichten`
+-   `nahr`
+-   `operation-nabucco`
+-   `podcast`
+-   `poesie-prosa`
+-   `preis-der-republik`
+-   `project-r-newsletter`
+-   `raumdeutung`
+-   `republik-live`
+-   `salon-der-republik`
+-   `sehfeld`
+-   `strassberg`
+-   `tech-podcast`
+-   `theater`
+-   `theaterspektakel`
+-   `theorie-praxis`
+-   `update`
+-   `was-diese-woche-wichtig-war`
+-   `was-kommt`
+-   `watchblog`
+-   `welt-in-serie`
+-   `wochenend-newsletter`
+-   `wochenrevue`
+-   `zur-aktualitaet`
 
-Besides, the function `spread_new_articles()` expects a `subject` string, an `intro` phrase and optionally an `image_url` for an embedded symbolic picture. If you want to spread only the very latest article of the chosen format, set `latest_one_only` to `TRUE`.
+Besides, the function `spread_new_articles()` expects a `subject` string, an `intro` phrase and optionally an `image_url` for an embedded symbolic picture. If
+you want to spread only the very latest article of the chosen format, set `latest_one_only` to `TRUE`.
 
 ## Run the script
 
 To run the script from a shell:
 
-```sh
+``` {.sh}
 Rscript --vanilla \
          -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
                                        output = tempfile(), \
@@ -167,18 +183,18 @@ Rscript --vanilla \
 
 If you plan to run the script regularly, it might be worth to save the purled R script to file:
 
-```sh
+``` {.sh}
 Rscript --vanilla \
          -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
                                        output = 'republik_mailer-GEN.R', \
-                                       quiet = TRUE),
+                                       quiet = TRUE), \
                     encoding = 'UTF-8', \
                     echo = FALSE)"
 ```
 
 Then you can directly run this file and save some processing time:
 
-```sh
+``` {.sh}
 Rscript --vanilla \
         -e "source(file = 'republik_mailer-GEN.R', \
                    encoding = 'UTF-8', \
@@ -192,6 +208,6 @@ Just remember that you have to `knitr::purl()` again after applying any changes 
 
 ## E-mail example
 
-An e-mail for a new post in the Republik format [_Am Gericht_](https://www.republik.ch/format/am-gericht/) could look like this:
+An e-mail for a new post in the Republik format [*Am Gericht*](https://www.republik.ch/format/am-gericht/) could look like this:
 
 ![](images/mail-am-gericht.png)

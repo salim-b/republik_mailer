@@ -100,7 +100,8 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 -   `am-klavier`
 -   `am-wegesrand`
 -   `an-die-verlagsetage`
--   `alles-was-recht-ist`
+-   `ansichten-aus-afrika`
+-   `alles-was-recht-ist` -\> merged into `zur-aktualitaet`
 -   `auf-lange-sicht`
 -   `aus-der-arena`
 -   `aus-der-redaktion`
@@ -110,9 +111,11 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 -   `bookmark`
 -   `briefing-aus-bern`
 -   `buchclub`
+-   `covid-19-uhr-newsletter`
 -   `ctrl-alt-r`
 -   `das-leben-spielt`
 -   `debatte`
+-   `der-der-du-niemals-sein-wirst`
 -   `echo`
 -   `eidgenoessische-randnotizen`
 -   `entwicklungslabor`
@@ -120,6 +123,7 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 -   `film`
 -   `format-happening`
 -   `fotobuch`
+-   `fuenfmal-beethoven`
 -   `gedankensplitter`
 -   `genossenschaftsrat`
 -   `gift-und-galle`
@@ -134,17 +138,23 @@ The parameters `format` and `formats` of the functions `get_latest_article_metad
 -   `podcast`
 -   `poesie-prosa`
 -   `preis-der-republik`
+-   `project-r-newsletter`
 -   `raumdeutung`
 -   `republik-live`
+-   `salon-der-republik`
 -   `sehfeld`
+-   `strassberg`
+-   `tech-podcast`
 -   `theater`
 -   `theaterspektakel`
 -   `theorie-praxis`
 -   `update`
 -   `was-diese-woche-wichtig-war`
 -   `was-kommt`
+-   `watchblog`
 -   `welt-in-serie`
 -   `wochenend-newsletter`
+-   `wochenrevue`
 -   `zur-aktualitaet`
 
 Besides, the function `spread_new_articles()` expects a `subject` string, an `intro` phrase and optionally an `image_url` for an embedded symbolic picture. If you want to spread only the very latest article of the chosen format, set `latest_one_only` to `TRUE`.
@@ -171,7 +181,7 @@ If you plan to run the script regularly, it might be worth to save the purled R 
 Rscript --vanilla \
          -e "source(file = knitr::purl(input = 'republik_mailer.Rmd', \
                                        output = 'republik_mailer-GEN.R', \
-                                       quiet = TRUE),
+                                       quiet = TRUE), \
                     encoding = 'UTF-8', \
                     echo = FALSE)"
 ```
